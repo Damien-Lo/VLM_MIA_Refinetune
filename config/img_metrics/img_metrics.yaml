@@ -1,0 +1,20 @@
+defaults:
+  - metrics@aug_kld : aug_kld
+  - metrics@max_k_renyi_1_entro : renyi_1_entro
+  - metrics@max_k_renyi_2_entro : renyi_2_entro
+  - metrics@max_k_renyi_05_entro : renyi_05_entro
+  - metrics@max_prob_gap : max_prob_gap
+  - metrics@min_k_renyi_1_entro : min_k_renyi_1_entro
+  - metrics@min_k_renyi_2_entro : min_k_renyi_2_entro
+  - metrics@min_k_renyi_05_entro : min_k_renyi_05_entro
+  - metrics@mink : mink
+  - metrics@mod_entro : mod_entro
+  - metrics@mod_renyi_2 : mod_renyi_2
+  - metrics@mod_renyi_05 : mod_renyi_05
+  - metrics@renyi_1 : renyi_1
+  - metrics@renyi_2 : renyi_2
+  - metrics@renyi_05 : renyi_05
+  - metrics@renyi_05_full : renyi_05_full
+
+metrics_to_use: ???
+parts: ???
