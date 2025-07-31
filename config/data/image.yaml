@@ -1,3 +1,18 @@
 dataset: "JaineLi/VL-MIA-image"
 subset: "img_Flickr"
 split: train
+augmentations: 
+  RandomResize:
+    use: true
+    size: [256,256]
+  RandomRotation: 
+    use: true
+    degrees: 45
+  RandomAffine:
+    use: true
+    degrees: 30
+    traslate: [0.1, 0.1]
+    scale: [0.75, 1.25]
+  GaussianNoise:
+    use: true
+    noise_levels: [10.0]

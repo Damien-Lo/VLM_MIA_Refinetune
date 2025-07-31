@@ -2,6 +2,8 @@ defaults:
   - data: ???
   - target_model: llava-v1.5-7b.yaml
   - reference_model: llava-v1.5-7b.yaml
+  - generation: generation
+  - inference: inference
   - img_metrics: ???
   - path: path
   - wandb : wandb

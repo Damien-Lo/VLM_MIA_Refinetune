@@ -1,0 +1,3 @@
+- use_augmentation: false
+- batch_size: 4
+- max_generation_length: 
