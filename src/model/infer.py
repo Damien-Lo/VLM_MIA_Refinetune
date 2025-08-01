@@ -115,11 +115,6 @@ class BatchProcessor:
             prompt_1.append(self.dataset[_idx]["prompt_1"])
             desc_shape.append(self.dataset[_idx]["desc_shape"])
 
-            # img_slice.append(self.dataset[_idx]["img"])
-            # inst_desc.append(self.dataset[_idx]["inst_desp"])
-            # inst.append(self.dataset[_idx]["inst"])
-            # desc.append(self.dataset[_idx]["desp"])
-
             for k, aug_imgs in self.dataset[_idx]["aug_img_tensors"].items():
                 if k not in aug_image_tensors :
                     aug_image_tensors[k] = [[] for _ in range(len(aug_imgs))]
@@ -184,49 +179,46 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
     use_augmentation : True if we use augmented
     """
 
-    def _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape, get_mix_input_ids=False):
+    def _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape):
         target_parts = dict()
-        mix_input_ids = list()
-        mix_attention_masks = list()
+        mix_input_ids = dict()
         for _input_ids, _logits, _attention_mask, _prompt_0, _prompt_1, _desc_shape \
             in zip(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape):
 
             _img_loss_slice, _img_slice, _inst_desc, _inst, _desc = get_parts_slices(_prompt_0, _prompt_1, _desc_shape)
+            _img_loss_slices = logit[_img_loss_slice, :]
+            _img_target = torch.nn.functional.softmax(_img_loss_slices, axis=-1)
+            _max_indices = torch.argmax(_img_target, axis=-1)
+
+            # tensor a: Whatever that comes before the image
+            # tensor b: From the second token after image to the end
+            tensor_a = torch.tensor(_prompt_0).cuda() if not isinstance(_prompt_0, torch.Tensor) else _prompt_0
+            tensor_b = torch.tensor(_prompt_1[1:]).cuda() if not isinstance(_prompt_1[1:], torch.Tensor) else _prompt_1[1:]
+
+            _mix_input_ids = torch.cat([tensor_a, _max_indices, tensor_b], dim=0)
 
             for p in parts:
-                if not p in target_parts:
-                        target_parts[p]["logits"] = list()
-                        target_parts[p]["probabilities"] = list()
-                        target_parts[p]["log_probabilities"] = list()
+                if p not in target_parts:
+                    target_parts[p]["input_ids"] = list()
+                    target_parts[p]["probabilities"] = list()
+                    target_parts[p]["log_probabilities"] = list()
                 if p == "img":
-                    target_parts[p]["logits"].append(_logits[_img_slice, :])
+                    _slice = _img_slice
                 elif p == "inst_desp":
-                    target_parts[p]["logits"].append(_logits[_inst_desc, :])
+                    _slice = inst_desc
                 elif p == "inst":
-                    target_parts[p]["logits"].append(_logits[_inst, :])
+                    _slice = inst
                 elif p == "desp":
-                    target_parts[p]["logits"].append(_logits[_desc, :])
+                    _slice = desc
                 else:
                     raise ValueError(f"Not supported goal {g}")
 
-                target_parts[p]["probabilities"].append(torch.nn.functional.softmax(target_parts[p]["logits"], dim=-1))
-                target_parts[p]["log_probabilities"].append(torch.nn.functional.log_softmax(target_parts[p]["logits"], dim=-1))
-
-            if get_mix_input_ids:
-                _img_loss_slices = logit[_img_loss_slice, :]
-                _img_target = torch.nn.functional.softmax(_img_loss_slices, axis=-1)
-                _max_indices = torch.argmax(_img_target, axis=-1)
-
-                # tensor a: Whatever that comes before the image
-                # tensor b: From the second token after image to the end
-                tensor_a = torch.tensor(_prompt_0).cuda() if not isinstance(_prompt_0, torch.Tensor) else _prompt_0
-                tensor_b = torch.tensor(_prompt_1[1:]).cuda() if not isinstance(_prompt_1[1:], torch.Tensor) else _prompt_1[1:]
-
-                _mix_input_ids = torch.cat([tensor_a, _max_indices, tensor_b], dim=0)
-                mix_input_ids.append(_mix_input_ids)
-                mix_attention_masks.append(_attention_mask[1:])
+                target_parts[p]["input_ids"].append(_mix_input_ids[_slice])                
+                _slice_logits = _logits[_slice, :]
+                target_parts[p]["probabilities"].append(torch.nn.functional.softmax(_slice_logits, dim=-1))
+                target_parts[p]["log_probabilities"].append(torch.nn.functional.log_softmax(_slice_logits, dim=-1))
         
-        return mix_input_ids, mix_attention_masks, target_parts
+        return target_parts
         
 
     if use_augmentation:
@@ -251,10 +243,9 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
             )
 
         logits = outputs.logits
-        mix_input_ids, mix_attention_masks, target_parts = _get_parts(input_ids, logits,
-                                                                      attention_masks, prompt_0,
-                                                                      prompt_1, desc_shape, get_mix_input_ids=True)
-        total_parts["orig"] = target_parts
+        target_parts = _get_parts(input_ids, logits, attention_masks,
+                                  prompt_0, prompt_1, desc_shape)
+        total_parts["orig"] = [target_parts]
         
         # 2. Conduct inference using the augmented images
         for k, aug_images in batch["aug_image_tensors"].items():
@@ -268,16 +259,16 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
                         image_sizes=image_sizes
                     )
                 logits = outputs.logits
-                _, _, target_parts = _get_parts(input_ids, logits,
-                                                attention_masks, prompt_0,
-                                                prompt_1, desc_shape, get_mix_input_ids=False)
+                target_parts = _get_parts(input_ids, logits, attention_masks,
+                                          prompt_0, prompt_1, desc_shape)
                 total_parts[k].append(target_parts)
 
-        return mix_input_ids, mix_attention_masks, total_parts
+        return mix_input_ids, total_parts
 
 
     else:
         meta_metrics = list()
+        total_parts = dict()
 
         input_ids = batch["input_ids"].cuda()
         image_tensors = batch["image_tensors"].cuda()
@@ -300,45 +291,8 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
             )
 
         logits = outputs.logits
-        target_parts = dict()
+        target_parts = _get_parts(input_ids, logits, attention_masks, 
+                                  prompt_0, prompt_1, desc_shape)
+        total_parts["orig"] = [target_parts]
 
-        mix_input_ids = list()
-        mix_attention_masks = list()
-        for _input_ids, _logits, _attention_mask, _prompt_0, _prompt_1, _desc_shape \
-            in zip(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape):
-
-            _img_loss_slice, _img_slice, _inst_desc, _inst, _desc = get_parts_slices(_prompt_0, _prompt_1, _desc_shape)
-
-            _img_loss_slices = logit[_img_loss_slice, :]
-            _img_target = torch.nn.functional.softmax(_img_loss_slices, axis=-1)
-            _max_indices = torch.argmax(_img_target, axis=-1)
-
-            # tensor a: Whatever that comes before the image
-            # tensor b: From the second token after image to the end
-            tensor_a = torch.tensor(_prompt_0).cuda() if not isinstance(_prompt_0, torch.Tensor) else _prompt_0
-            tensor_b = torch.tensor(_prompt_1[1:]).cuda() if not isinstance(_prompt_1[1:], torch.Tensor) else _prompt_1[1:]
-
-            _mix_input_ids = torch.cat([tensor_a, _max_indices, tensor_b], dim=0)
-            mix_input_ids.append(_mix_input_ids)
-            mix_attention_masks.append(_attention_mask[1:])
-
-            for p in parts:
-                if not p in target_parts:
-                        target_parts[p]["logits"] = None
-                        target_parts[p]["probabilities"] = None
-                        target_parts[p]["log_probabilities"] = None
-                if p == "img":
-                    target_parts[p]["logits"] = _logits[_img_slice, :]
-                elif p == "inst_desp":
-                    target_parts[p]["logits"] = _logits[_inst_desp, :]
-                elif p == "inst":
-                    target_parts[p]["logits"] = _logits[_inst, :]
-                elif p == "desp":
-                    target_parts[p]["logits"] = _logits[_desp, :]
-                else:
-                    raise ValueError(f"Not supported part {p}")
-
-                target_parts[p]["probabilities"] = torch.nn.functional.softmax(target_parts[p]["logits"], dim=-1)
-                target_parts[p]["log_probabilities"] = torch.nn.functional.log_softmax(target_parts[p]["logits"], dim=-1)
-            
-        return mix_input_ids, mix_attention_mask, target_parts
+        return total_parts
