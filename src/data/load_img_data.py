@@ -99,6 +99,7 @@ def convert_to_generation_input_ids(examples, tokenizer, instruction, model_conf
     Preprocess the generation dataset
     """
     image_paths = examples["image"]
+    indices = examples["indices"]
     inage_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     qs = instruction
     if IMAGE_PLACEHOLDER in qs:
@@ -118,10 +119,11 @@ def convert_to_generation_input_ids(examples, tokenizer, instruction, model_conf
     conv.append_message(conv.roles[1], None)
     prompt = conv.get_prompt()
 
+    all_indices = list()
     all_input_ids = list()
     all_image_tensors = list()
     all_image_sizes = list()
-    for _image_path in image_paths:
+    for _image_path, _indices in zip(image_paths, indices):
         images = load_images([_image_path])
         image_sizes = [x.size for x in images]
         image_tensor = process_images(
@@ -132,21 +134,23 @@ def convert_to_generation_input_ids(examples, tokenizer, instruction, model_conf
 
         # Tokenize Image Based On Prompt
         input_ids, prompt_chunks = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
+        all_indices.append(_indices)
         all_input_ids.append(input_ids)
         all_image_tensors.append(image_tensor.squeeze(0))
         all_image_sizes.append(image_sizes[0])
 
     return {
-        "indices": torch.tensor(idx),
-        "input_ids": torch.tensor(all_input_ids),
-        "image_tensors": torch.tensor(all_image_tensors),
-        "image_sizes": torch.tensor(all_image_sizes)
+        "indices": all_indices,
+        "input_ids": all_input_ids,
+        "image_tensors": all_image_tensors,
+        "image_sizes": all_image_sizes
     }
 
 def convert_to_aug_generation_input_ids(examples, tokenizer, instruction, model_config, conv, cfg):
     """
     Preprocess the generation dataset
     """
+    indices = examples["indices"]
     image_paths = examples["image"]
     inage_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     qs = instruction
@@ -167,14 +171,15 @@ def convert_to_aug_generation_input_ids(examples, tokenizer, instruction, model_
     conv.append_message(conv.roles[1], None)
     prompt = conv.get_prompt()
 
+    all_indices = list()
     all_input_ids = list()
-    all_image_tensors = list()
+    all_orig_image_tensors = list()
     all_image_sizes = list()
     all_aug_images = list()
     aug_dict = get_augmentations(cfg)
-    for _image_path in image_paths:
+    for _image_path, _indices in zip(image_paths, indices):
         image = load_image(_image_path)  # Loading just one image
-        image_tensor = process_images(
+        orig_image_tensor = process_images(
             [images],
             image_processor,
             model_config
@@ -196,17 +201,18 @@ def convert_to_aug_generation_input_ids(examples, tokenizer, instruction, model_
         
         # Tokenize Image Based On Prompt
         input_ids, prompt_chunks = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
+        all_indices.append(_indices)
         all_aug_images.append(aug_imgs)
         all_input_ids.append(input_ids)
-        all_image_tensors.append(image_tensor.squeeze(0))
+        all_orig_image_tensors.append(orig_image_tensor.squeeze(0))
         all_image_sizes.append(image_sizes[0])
 
     return {
-        "indices": idx,
+        "indices": all_indices,
         "input_ids": all_input_ids,
-        "image_tensors": all_image_tensors,
+        "orig_image_tensors": all_orig_image_tensors,
         "image_sizes": all_img_sizes,
-        "aug_img_tensors": all_aug_images
+        "aug_image_tensors": all_aug_images
     }
 
 def convert_to_mod_infer(examples, tokenizer, instruction, model_config, conv, cfg):
@@ -237,10 +243,9 @@ def convert_to_mod_infer(examples, tokenizer, instruction, model_config, conv, c
     all_attention_mask = list()
     all_image_sizes = list()
     all_img_slices = list()
-    all_img_loss_slices = list()
-    all_inst_desp_slices = list()
-    all_inst_slices = list()
-    all_desp_slices = list()
+    all_prompt_0 = list()
+    all_prompt_1 = list()
+    all_desc_shape = list()
 
     for _image_path, _description in zip(image_paths, descriptions):
         
@@ -273,48 +278,106 @@ def convert_to_mod_infer(examples, tokenizer, instruction, model_config, conv, c
 
         desc_encoding = tokenizer(_description, return_tensors="pt", add_special_tokens = False).to(device).input_ids
 
-        img_slice = slice(len(prompt_chunks[0]),-len(prompt_chunks[-1])+1)
-        inst_desc = slice(-len(prompt_chunks[-1])+1, input_ids.size(0))
-        inst = slice(-len(prompt_chunks[-1])+1,-desc_encoding.shape[1])
-        desc = slice(-desc_encoding.shape[1], input_ids.size(0))
-
-        img_slice_mask = torch.zeros_like(padded_input_ids, dtype=torch.bool)
-        img_slice_mask[img_slice] = 1
-        img_loss_mask = torch.zeros_like(padded_input_ids, dtype=torch.bool)
-        img_loss_mask[img_slice.start-1:img_slice.stop-1] = 1
-        inst_desc_mask = torch.zeros_like(padded_input_ids, dtype=torch.bool)
-        inst_desc_mask[inst_desc] = 1
-        inst_mask = torch.zeros_like(padded_input_ids, dtype=torch.bool)
-        inst_mask[inst] = 1
-        desc_mask = torch.zeros_like(padded_input_ids, dtype=torch.bool)
-        desc_mask[desc] = 1
-
-        all_img_slices.append(img_slice_mask)
-        all_img_loss_slices.append(img_loss_mask)
-        all_inst_desp_slices.append(inst_desc_mask)
-        all_inst_slices.append(inst_mask)
-        all_desp_slices.append(desc_mask)
+        all_prompt_0.append(prompt_chunks[0])
+        all_prompt_1.append(prompt_chunks[-1])
+        all_desc_shape.append(desc_encoding.shape[1])
 
     return {
-        "input_ids": torch.tensor(all_input_ids),
-        "image_tensors": torch.tensor(all_image_tensors),
-        "attention_masks" : torch.tensor(all_attention_mask),
-        "image_sizes" : torch.tensor(all_image_sizes),
-        "img": torch.tensor(all_img_slices),
-        "img_loss": torch.tensor(all_img_loss_slices),
-        "inst_desp": torch.tensor(all_inst_desp_slices),
-        "inst": torch.tensor(all_inst_slices),
-        "desp": torch.tensor(all_desp_slices)
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-
-        all_input_ids.append(input_ids)
-        all_image_tensors.append(image_tensor.squeeze(0))
-
-    return {
-        "indices": torch.tensor(idx),
-        "input_ids": torch.tensor(all_input_ids),
-        "image_tensors": torch.tensor(all_image_tensors)
+        "input_ids": all_input_ids,
+        "image_tensors": all_image_tensors,
+        "attention_masks" : all_attention_mask,
+        "image_sizes" : all_image_sizes,
+        "prompt_0" : all_prompt_0,
+        "prompt_1" :  all_prompt_1,
+        "desc_shape": all_desc_shape
     }
 
 
-def convert_to_mod_infer_with_transformation():
+def convert_to_augmention_mod_infer(examples, tokenizer, instruction, model_config, conv, cfg):
+    """
+    Preprocess the mod_infer dataset
+    example: batched rows of dataset (has image paths and the descriptions paired with each image)
+    instruction: instruction
+    descriptions: generated descriptions
+    """
+    indices = examples["indices"]
+    image_paths = examples["image"]
+    descriptions = examples["desc"]
+    qs = instruction
+    
+    inage_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
+    if IMAGE_PLACEHOLDER in qs:
+        if model_config.mm_use_im_start_end:
+            qs = re.sub(IMAGE_PLACEHOLDER, image_token_se, qs)
+        else:
+            qs = re.sub(IMAGE_PLACEHOLDER, DEFAULT_IMAGE_TOKEN, qs)
+    else:
+        if model_cfg.mm_use_im_start_end:
+            qs = image_token_se + "\n" + qs
+        else:
+            qs = DEFAULT_IMAGE_TOKEN + "\n" + qs
+
+    all_indices = list()
+    all_input_ids = list()
+    all_orig_image_tensors = list()
+    all_aug_images = list()
+    all_image_sizes = list()
+    all_prompt_0 = list()
+    all_prompt_1 = list()
+    all_desc_shape = list()
+    
+    aug_dict = get_augmentations(cfg)
+
+    for _indices, _image_path, _description in zip(indices, image_paths, descriptions):
+        
+        conv = conv_templates[conv_mode].copy()
+        conv.append_message(conv.roles[0], qs)
+        conv.append_message(conv.roles[1], _description)
+        prompt = conv.get_prompt()[:-4]
+
+        images = load_images([_image_path])
+        image_sizes = [x.size for x in images]
+        orig_image_tensor = process_images(
+            images,
+            image_processor,
+            model_config
+        )
+
+        aug_imgs = dict()
+        for k, aug_f_list in aug_imgs:
+            _aug_tensor_list = list()
+            for _aug_f in aug_f_list:
+                _aug_image = _aug_f(images[0])
+                _aug_image_tensor = process_images(
+                    [_aug_images],
+                    image_processor,
+                    model_config
+                )
+                _aug_tensor_list.append(_aug_image_tensor)
+            aug_imgs[k] = _aug_tensor_list
+        
+
+        # Tokenize Image Based On Prompt
+        input_ids, prompt_chunks = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
+        
+        all_indices.append(_indices)
+        all_input_ids.append(padded_input_ids)
+        all_orig_image_tensors.append(image_tensor)
+        all_image_sizes.append(image_sizes[0])
+        all_aug_images.append(aug_imgs)
+
+        desc_encoding = tokenizer(_description, return_tensors="pt", add_special_tokens = False).to(device).input_ids
+
+        all_prompt_0.append(prompt_chunks[0])
+        all_prompt_1.append(prompt_chunks[-1])
+        all_desc_shape.append(desc_encoding.shape[1])
+
+    return {
+        "input_ids": all_input_ids,
+        "orig_image_tensors": all_image_tensors,
+        "aug_image_tensors": all_aug_images,
+        "image_sizes" : all_image_sizes,
+        "prompt_0": all_prompt_0,
+        "prompt_1": all_prompt_1,
+        "desc_shape": all_desc_shape
+    }
