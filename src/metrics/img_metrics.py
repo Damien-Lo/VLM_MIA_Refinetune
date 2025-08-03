@@ -171,6 +171,7 @@ def min_entropy(renyi, cfg):
 
     for _ratio in ratio:
         _key = f"Min_{_ratio*100}% "+cfg.suffix
+        result[_key] = list()
         for _renyi in renyi["orig"][0]:
             k_length = int(len(_renyi)*_ratio)
             if k_length == 0:

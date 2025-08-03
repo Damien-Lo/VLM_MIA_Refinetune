@@ -120,7 +120,7 @@ class BatchProcessor:
             prompt_1.append(self.dataset[_idx]["prompt_1"])
             desc_shape.append(self.dataset[_idx]["desc_shape"])
 
-            for k, aug_imgs in self.dataset[_idx]["aug_img_tensors"].items():
+            for k, aug_imgs in self.dataset[_idx]["aug_image_tensors"].items():
                 if k not in aug_image_tensors :
                     aug_image_tensors[k] = [[] for _ in range(len(aug_imgs))]
                 for _aug_idx, _aug_img in enumerate(aug_imgs):
@@ -266,7 +266,7 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
                 target_parts = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
                 total_parts[k].append(target_parts)
 
-        return mix_input_ids, attention_masks, total_parts
+        return total_parts
 
     else:
         total_parts = dict()
