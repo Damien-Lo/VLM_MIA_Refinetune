@@ -96,7 +96,7 @@ class BatchProcessor:
         input_ids = list()
         padded_input_ids = list()
         attention_masks = list()
-        image_tensors = list()
+        orig_image_tensors = list()
         image_sizes = list()
         prompt_0 = list()
         prompt_1 = list()
@@ -114,7 +114,7 @@ class BatchProcessor:
             indices.append(self.dataset[_idx]["indices"])
             input_ids.append(self.dataset[_idx]["input_ids"])
             input_ids_len.append(len(self.dataset[_idx]["input_ids"]))
-            image_tensors.append(self.dataset[_idx]["image_tensors"])
+            orig_image_tensors.append(self.dataset[_idx]["orig_image_tensors"])
             image_sizes.append(self.dataset[_idx]["image_sizes"])
             prompt_0.append(self.dataset[_idx]["prompt_0"])
             prompt_1.append(self.dataset[_idx]["prompt_1"])
@@ -150,7 +150,7 @@ class BatchProcessor:
             "input_ids" : torch.stack(padded_input_ids, dim=0),
             "attention_masks" : torch.stack(attention_masks, dim=0),
             "image_sizes" :  torch.tensor(image_sizes),
-            "orig_image_tensors": torch.tensor(image_tensors, dtype=torch.float16),
+            "orig_image_tensors": torch.tensor(orig_image_tensors, dtype=torch.float16),
             "aug_image_tensors": aug_image_tensors,
             "prompt_0": prompt_0,
             "prompt_1": prompt_1,

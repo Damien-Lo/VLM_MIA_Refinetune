@@ -1,30 +1,17 @@
 """
 Main MIA entry point
 """
-
+import os
+import json
 import hydra
-from src.data import get_generation_data
-from src.data import get_mod_infer_data
-from src.model import generate, mod_infer_batch
+from src.eval import evaluate
 from src.inference import inference
+from src.data import get_mod_infer_data
+from src.data import get_generation_data
+from src.model import generate, mod_infer_batch
 from llava.mm_utils import get_model_name_from_path
 from llava.model.builder import load_pretrained_model
-
-def load_conversation_template(model_name):
-    if "llama-2" in model_name.lower():
-        conv_mode = "llava_llama_2"
-    elif "mistral" in model_name.lower():
-        conv_mode = "mistral_instruct"
-    elif "v1.6-34b" in model_name.lower():
-        conv_mode = "chatml_direct"
-    elif "v1" in model_name.lower():
-        conv_mode = "llava_v1"
-    elif "mpt" in model_name.lower():
-        conv_mode = "mpt"
-    else:
-        conv_mode = "llava_v0"
-    return conv_mode
-
+from src.misc import save_to_json, load_conversation_template
 
 @hydra.main(version_base=None, config_path="./config", config_name="run_img")
 def main(cfg):
@@ -48,6 +35,7 @@ def main(cfg):
 
     # Generation data
     text = cfg.prompt.text
+
     # gen_data = get_generation_data(cfg, tokenizer, image_processor, text, model.config, conv_mode)
     # indices, descriptions = generate(model, tokenizer, gen_data, cfg)
     
@@ -56,8 +44,11 @@ def main(cfg):
     mod_infer_data = get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, model.config, conv_mode)
 
     preds = inference(model, tokenizer, mod_infer_data, cfg)
-
     
+    auc, acc, auc_low = evaluate(preds, mod_infer_data["label"], "img")
+    save_to_json(auc, "auc", cfg)
+    save_to_json(acc, "acc", cfg)
+    save_to_json(auc_low, "auc_low", cfg)
 
 if __name__ == "__main__":
     main()

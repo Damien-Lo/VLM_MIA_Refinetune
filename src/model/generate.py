@@ -183,7 +183,6 @@ def generate(model, tokenizer, dataset, cfg):
                                      batch_size=cfg.generation.batch_size,
                                      use_augmentation=cfg.generation.use_augmentation)
     outputs = list()
-    indices = list()
     
     # Calculate total number of batches for progress bar
     total_batches = len(batch_generator)
@@ -195,7 +194,6 @@ def generate(model, tokenizer, dataset, cfg):
                             unit="batch")):
         _outputs = generate_a_batch(model, tokenizer, batch, cfg.generation.num_gen_tokens, cfg.generation.use_augmentation)
 
-        indices.extend(batch["indices"])
         outputs.extend(_outputs)
 
-    return indices, outputs
+    return outputs

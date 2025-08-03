@@ -1,6 +1,7 @@
 import torch
 import torchvision.transforms as transforms
 from functools import partial
+from PIL import Image
 
 def get_augmentations(cfg):
     aug_dict = cfg.data.augmentations
@@ -48,11 +49,11 @@ def get_augmentations(cfg):
             aug_func_dict[key] = _aug_f_list
         elif key == "GaussianNoise" and values.use == True:
             _aug_f_list = list()
-            for _mean, _std, _clip in zip(values.mean, values.std, values.clip):
+            for _mean, _std in zip(values.mean, values.std):
                 aug_f = AddGaussianNoisePIL(
                     mean=_mean,
                     std=_std,
-                    clip=_clip
+                    clip=True
                 )
                 _aug_f_list.append(aug_f)
             aug_func_dict[key] = _aug_f_list
@@ -83,7 +84,6 @@ class AddGaussianNoisePIL:
             noisy = np.clip(noisy, 0, 255)
 
         # Convert back to PIL Image
-        from PIL import Image
         return Image.fromarray(noisy.astype(np.uint8))
 
     def __repr__(self):
