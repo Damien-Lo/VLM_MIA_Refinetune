@@ -1,8 +1,8 @@
 defaults:
   - metrics@aug_kld : aug_kld
-  - metrics@max_k_renyi_1_entro : renyi_1_entro
-  - metrics@max_k_renyi_2_entro : renyi_2_entro
-  - metrics@max_k_renyi_05_entro : renyi_05_entro
+  - metrics@max_k_renyi_1_entro : max_k_renyi_1_entro
+  - metrics@max_k_renyi_2_entro : max_k_renyi_2_entro
+  - metrics@max_k_renyi_05_entro : max_k_renyi_05_entro
   - metrics@max_prob_gap : max_prob_gap
   - metrics@min_k_renyi_1_entro : min_k_renyi_1_entro
   - metrics@min_k_renyi_2_entro : min_k_renyi_2_entro

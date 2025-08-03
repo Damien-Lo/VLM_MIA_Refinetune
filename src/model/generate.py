@@ -1,4 +1,5 @@
 import torch
+from tqdm import tqdm
 
 def generate_all_response(model, tokenizer, dataloader, num_gen_tokens):
     outputs = list()
@@ -87,19 +88,21 @@ class BatchProcessor:
         self.dataset = dataset
         self.use_augmentation = use_augmentation
         self.batch_size = batch_size
-        self.last_batch = 0
         self.current_batch = 0
-        self.num_batch = int(len(dataset)/self.batch_size)
+        self.num_batch = int(len(dataset)/self.batch_size) if len(dataset) % self.batch_size == 0 else int(len(dataset)/self.batch_size) + 1
+
+    def __len__(self):
+        return self.num_batch
 
     def __iter__(self):
         return self
 
     def __next__(self):
         if self.use_augmentation:
-            return self._get_augmented_batch()
+            return self._get_augmented_batch()    
         else:
             return self._get_normal_batch()
-        
+
     def _get_normal_batch(self):
         """
         indices: 1D vector has index of samples in the batch
@@ -107,7 +110,7 @@ class BatchProcessor:
         image_tensors: 4D vector [sample_idx, channel_dim, width, height]
         image_sizes: 3D vector [sample_idx, height, width]
         """
-        if self.last_batch == self.num_batch:
+        if self.current_batch == self.num_batch:
             raise StopIteration
  
         indices = list()
@@ -115,8 +118,8 @@ class BatchProcessor:
         image_tensors = list()
         image_sizes = list()
         
-        batch_begin = self.last_batch * self.batch_size
-        if self.last_batch == self.num_batch-1:
+        batch_begin = self.current_batch * self.batch_size
+        if self.current_batch == self.num_batch-1:
             batch_end = len(self.dataset)
         else:
             batch_end = batch_begin + self.batch_size        
@@ -127,12 +130,12 @@ class BatchProcessor:
             image_tensors.append(self.dataset[_idx]["image_tensors"])
             image_sizes.append(self.dataset[_idx]["image_sizes"])
 
-        self.last_batch+=1
+        self.current_batch+=1
 
         return {
             "indices" : torch.tensor(indices),
             "input_ids" : torch.tensor(input_ids),
-            "image_tensors" : torch.tensor(image_tensors),
+            "image_tensors" : torch.tensor(image_tensors, dtype=torch.float16),
             "image_sizes" : torch.tensor(image_sizes)
         }
 
@@ -143,9 +146,8 @@ class BatchProcessor:
         image_sizes = list()
         aug_image_tensors = dict()
 
-
-        batch_begin = self.last_batch * self.batch_size
-        if self.last_batch == self.num_batch-1:
+        batch_begin = self.current_batch * self.batch_size
+        if self.current_batch == self.num_batch-1:
             batch_end = len(self.dataset)
         else:
             batch_end = batch_begin + self.batch_size        
@@ -166,13 +168,14 @@ class BatchProcessor:
             for _aug_idx in range(len(aug_imgs)):
                 aug_image_tensors[k][_aug_idx] = torch.tensor(aug_image_tensors[k][_aug_idx])
 
-        self.last_batch+=1
+        self.current_batch+=1
         return {
-            "indices" : torch.tensor(indices),
+            "indices" : indices,
             "input_ids": torch.tensor(input_ids),
-            "orig_image_tensors": torch.tensor(orig_image_tensors),
+            "orig_image_tensors": torch.tensor(orig_image_tensors, dtype=torch.float16),
             "aug_image_tensors": aug_image_tensors
         }
+
 
 def generate(model, tokenizer, dataset, cfg):
     num_gen_tokens = cfg.generation.num_gen_tokens
@@ -180,8 +183,19 @@ def generate(model, tokenizer, dataset, cfg):
                                      batch_size=cfg.generation.batch_size,
                                      use_augmentation=cfg.generation.use_augmentation)
     outputs = list()
-    for b_idx, batch in enumerate(batch_generator):
+    indices = list()
+    
+    # Calculate total number of batches for progress bar
+    total_batches = len(batch_generator)
+    
+    # Add progress bar
+    for b_idx, batch in enumerate(tqdm(batch_generator,
+                            total=total_batches, 
+                            desc="Generating responses", 
+                            unit="batch")):
         _outputs = generate_a_batch(model, tokenizer, batch, cfg.generation.num_gen_tokens, cfg.generation.use_augmentation)
+
+        indices.extend(batch["indices"])
         outputs.extend(_outputs)
 
-    return outputs
+    return indices, outputs
