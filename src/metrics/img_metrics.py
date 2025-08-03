@@ -25,6 +25,8 @@ def get_img_metric_by_parts(meta_metrics, cfg):
         }
         
     }
+
+    part is not necessary because it was already processed from the get_meta_metrics_by_part function.
     """
 
     pred = dict()
@@ -98,7 +100,7 @@ def aug_k(probabilities, log_probabilities, cfg):
                 continue
             _kld.append(kl_divergence(_orig_prob.cpu().numpy(),
                                       _orig_log_prob.cpu().numpy(),
-                                      probabilities[aug_name][0][_sample_idx])
+                                      probabilities[aug_name][0][_sample_idx]))
                                      # change [0] to something else or add a new logic if we use multiple params for each augmentation.
         result.append(-statistics.mean(_kld))
     return result

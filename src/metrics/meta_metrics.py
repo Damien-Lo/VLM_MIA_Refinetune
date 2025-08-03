@@ -18,7 +18,7 @@ def renyi_probs(token_probs_clamped, alpha):
         return renyi_normalized
 
 
-def get_meta_metrics_by_part(input_ids, attention_masks, total_parts, part, cfg):
+def get_meta_metrics_by_part(total_parts, part, cfg):
     """
     input_ids : mix_input_ids
     attention_masks : mix_attention_masks

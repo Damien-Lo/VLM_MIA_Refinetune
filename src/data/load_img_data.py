@@ -279,7 +279,6 @@ def convert_to_mod_infer(examples, tokenizer, image_processor, instruction, mode
     
     all_input_ids = list()
     all_image_tensors = list()
-    all_attention_mask = list()
     all_image_sizes = list()
     all_img_slices = list()
     all_prompt_0 = list()
@@ -317,7 +316,6 @@ def convert_to_mod_infer(examples, tokenizer, image_processor, instruction, mode
     return {
         "input_ids": all_input_ids,
         "image_tensors": all_image_tensors,
-        "attention_masks" : all_attention_mask,
         "image_sizes" : all_image_sizes,
         "prompt_0" : all_prompt_0,
         "prompt_1" :  all_prompt_1,

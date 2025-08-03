@@ -4,7 +4,9 @@ Main MIA entry point
 
 import hydra
 from src.data import get_generation_data
+from src.data import get_mod_infer_data
 from src.model import generate, mod_infer_batch
+from src.inference import inference
 from llava.mm_utils import get_model_name_from_path
 from llava.model.builder import load_pretrained_model
 
@@ -46,13 +48,15 @@ def main(cfg):
 
     # Generation data
     text = cfg.prompt.text
-    gen_data = get_generation_data(cfg, tokenizer, image_processor, text, model.config, conv_mode)
+    # gen_data = get_generation_data(cfg, tokenizer, image_processor, text, model.config, conv_mode)
+    # indices, descriptions = generate(model, tokenizer, gen_data, cfg)
+    
+    from gen_text import sentences as descriptions
 
-    indices, descriptions = generate(model, tokenizer, gen_data, cfg)
+    mod_infer_data = get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, model.config, conv_mode)
 
+    inference(model, tokenizer, mod_infer_data, cfg)
 
-    for d in descriptions:
-        print(d)
 
 if __name__ == "__main__":
     main()
