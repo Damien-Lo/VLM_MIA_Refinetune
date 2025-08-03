@@ -26,26 +26,28 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
     total_parts :
     {
         "orig" : 
-        {
-            "img" : {
-                "logits : [
-                    (sample 1 img logits),
-                    (sample 2 img logits)
-                ],
-                "probabilities" : [
-                    (sample 1 img probs),
-                    (sample 2 img probs)
-                ]
-                "log_probabilities" : [
-                    (sample 1 img log_probs),
-                    (sample 2 img log_probs),
-                ]
-            },
-            "inst": {
-                "logits" : [],
-                "probabilities : [],
-                "log_probabilities : []
-            }
+        {   
+            [
+                "img" : {
+                    "logits : [
+                        (sample 1 img logits),
+                        (sample 2 img logits)
+                    ],
+                    "probabilities" : [
+                        (sample 1 img probs),
+                        (sample 2 img probs)
+                    ]
+                    "log_probabilities" : [
+                        (sample 1 img log_probs),
+                        (sample 2 img log_probs),
+                    ]
+                },
+                "inst": {
+                    "logits" : [],
+                    "probabilities : [],
+                    "log_probabilities : []
+                }
+            ]
         }    
         "aug_1" : [
             {...},
@@ -82,7 +84,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
     meta_metrics["renyi_05_probs"] = dict()
     meta_metrics["renyi_1_probs"] = dict()
     meta_metrics["renyi_2_probs"] = dict()
-    meta_metrics["reny_inf_probs"] = dict()
+    meta_metrics["renyi_inf_probs"] = dict()
 
     epsilon = 1e-10
 
@@ -102,7 +104,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
         meta_metrics["renyi_05_probs"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["renyi_1_probs"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["renyi_2_probs"][aug_type] = [[] for _ in range(len(aug_results))]
-        meta_metrics["reny_inf_probs"][aug_type] = [[] for _ in range(len(aug_results))]
+        meta_metrics["renyi_inf_probs"][aug_type] = [[] for _ in range(len(aug_results))]
 
         for aug_idx, aug_result in enumerate(aug_results):
             meta_metrics["ppl"][aug_type][aug_idx] = list()
@@ -120,12 +122,12 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
             meta_metrics["renyi_05_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["renyi_1_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["renyi_2_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
-            meta_metrics["reny_inf_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
+            meta_metrics["renyi_inf_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
 
-            for _batch_idx in range(aug_result[part]["input_ids"]):
-                for _token_idx, token_id in enumerate(aug_result[part]["input_ids"][1:]):
-                    token_probs = aug_result[part]["probabilities"][_batch_idx, _token_idx, :]
-                    token_log_probs = aug_result[part]["log_probabilities"][_batch_idx, _token_idx, :]
+            for _batch_idx in range(len(aug_result[part]["input_ids"])):
+                for _token_idx, token_id in enumerate(aug_result[part]["input_ids"][_batch_idx][1:]):
+                    token_probs = aug_result[part]["probabilities"][_batch_idx][_token_idx, :]
+                    token_log_probs = aug_result[part]["log_probabilities"][_batch_idx][_token_idx, :]
                     token_probs_clamped = torch.clamp(token_probs, min=epsilon, max=1-epsilon)
 
                     # Renyi_1
@@ -151,7 +153,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
                     gap_p = max_p - second_p
                     meta_metrics["gap_probs"][aug_type][aug_idx][_batch_idx].append(gap_p)
                     meta_metrics["max_probs"][aug_type][aug_idx][_batch_idx].append(max_p)
-                    meta_metrics["renyi_inf_probs"][_batch_idx].append(renyi_probs(token_probs_clamped, "inf"))
+                    meta_metrics["renyi_inf_probs"][aug_type][aug_idx][_batch_idx].append(renyi_probs(token_probs_clamped, "inf"))
 
                     min_k_p = token_log_probs[token_id].item()
                     meta_metrics["all_prob"][aug_type][aug_idx][_batch_idx].append(min_k_p)
@@ -160,7 +162,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
                     meta_metrics["losses"][aug_type][aug_idx][_batch_idx].append(cross_entropy_loss)
 
                     # Modified entropy
-                    p_y = token_probs_safe[token_id].item()
+                    p_y = token_probs_clamped[token_id].item()
                     modified_entropy = -(1 - p_y) * torch.log(torch.tensor(p_y)) - (token_probs * torch.log(1 - token_probs_clamped)).sum().item() + p_y * torch.log(torch.tensor(1 - p_y)).item()
                     meta_metrics["modified_entropies"][aug_type][aug_idx][_batch_idx].append(modified_entropy)
 

@@ -32,22 +32,22 @@ def get_img_metric_by_parts(meta_metrics, cfg):
     pred = dict()
 
     if "aug_kl" in cfg.img_metrics.metrics_to_use:
-        _aug_kl = aug_kl(meta_metrics["probabilities"], meta_metrics["log_probabilities"], cfg.img_metrics.metrics.aug_kld)        
+        _aug_kl = aug_kl(meta_metrics["probabilities"], meta_metrics["log_probabilities"], cfg.img_metrics.aug_kld)        
         pred["aug_kl"] = _aug_kl
 
     if "mink" in cfg.img_metrics.metrics_to_use:
-        _min_k = min_k(meta_metrics["all_prob"], cfg.metrics.mink)
-        pred["min_k"] = _min_k
+        _min_k = min_k(meta_metrics["all_prob"], cfg.img_metrics.mink)
+        pred["mink"] = _min_k
 
-    if "mod_entro" in cfg.img_metrics.metrics_to_use:
+    if "mod_renyi_1_entro" in cfg.img_metrics.metrics_to_use:
         _mod_entropy = mod_entropy(meta_metrics["modified_entropies"])
         pred["mod_renyi_1_entro"] = _mod_entropy
 
-    if "mod_renyi_05" in cfg.img_metrics.metrics_to_use:
+    if "mod_renyi_05_entro" in cfg.img_metrics.metrics_to_use:
         _mod_renyi_05 = mod_renyi(meta_metrics["modified_entropies_alpha_05"])
         pred["mod_renyi_05_entro"] = _mod_renyi_05
 
-    if "mod_renyi_2" in cfg.img_metrics.metrics_to_use:
+    if "mod_renyi_2_entro" in cfg.img_metrics.metrics_to_use:
         _mod_renyi_2 = mod_renyi(meta_metrics["modified_entropies_alpha_2"])
         pred["mod_renyi_2_entro"] = _mod_renyi_2
 
@@ -56,31 +56,31 @@ def get_img_metric_by_parts(meta_metrics, cfg):
         pred["max_prob_gap"] = _max_prob_gap
 
     if "max_k_renyi_1_entro" in cfg.img_metrics.metrics_to_use:
-        _max_k_renyi_1_entro = max_entropy(meta_metrics["entropies"], cfg.img_metrics.metrics.max_k_renyi_1_entro)
+        _max_k_renyi_1_entro = max_entropy(meta_metrics["entropies"], cfg.img_metrics.max_k_renyi_1_entro)
         pred["max_k_renyi_1_entro"] = _max_k_renyi_1_entro
 
     if "max_k_renyi_2_entro" in cfg.img_metrics.metrics_to_use:
-        _max_k_renyi_2_entro = max_entropy(meta_metrics["renyi_2_entro"], cfg.img_metrics.metrics.max_k_renyi_2_entro)
+        _max_k_renyi_2_entro = max_entropy(meta_metrics["renyi_2_entro"], cfg.img_metrics.max_k_renyi_2_entro)
         pred["max_k_renyi_2_entro"] = _max_k_renyi_2_entro
 
     if "max_k_renyi_05_entro" in cfg.img_metrics.metrics_to_use:
-        _max_k_renyi_05_entro = max_entropy(meta_metrics["renyi_05_entro"], cfg.img_metrics.metrics.max_k_renyi_05_entro)
+        _max_k_renyi_05_entro = max_entropy(meta_metrics["renyi_05_entro"], cfg.img_metrics.max_k_renyi_05_entro)
         pred["max_k_renyi_05_entro"] = _max_k_renyi_05_entro
 
     if "max_k_renyi_inf" in cfg.img_metrics.metrics_to_use:
-        _max_k_renyi_inf = max_entropy(meta_metrics["renyi_inf_entro"], cfg.img_metrics.metrics.max_k_renyi_inf_entro)
+        _max_k_renyi_inf = max_entropy(meta_metrics["renyi_inf_entro"], cfg.img_metrics.max_k_renyi_inf_entro)
         pred["max_k_renyi_inf"] = _max_k_renyi_inf
 
     if "min_k_renyi_1_entro" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_1_entro = min_entropy(meta_metrics["entropies"], cfg.img_metrics.metrics.min_k_renyi_1_entro)
+        _min_k_renyi_1_entro = min_entropy(meta_metrics["entropies"], cfg.img_metrics.min_k_renyi_1_entro)
         pred["min_k_renyi_1_entro"] = _min_k_renyi_1_entro
 
     if "min_k_renyi_2_entro" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_2_entro = min_entropy(meta_metrics["renyi_2_entro"], cfg.img_metrics.metrics.min_k_renyi_2_entro)
+        _min_k_renyi_2_entro = min_entropy(meta_metrics["renyi_2_entro"], cfg.img_metrics.min_k_renyi_2_entro)
         pred["min_k_renyi_2_entro"] = _min_k_renyi_2_entro
 
     if "min_k_renyi_05_entro" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_05_entro = min_entropy(meta_metrics["renyi_05_entro"], cfg.img_metrics.metrics.min_k_renyi_05_entro)
+        _min_k_renyi_05_entro = min_entropy(meta_metrics["renyi_05_entro"], cfg.img_metrics.min_k_renyi_05_entro)
         pred["min_k_renyi_05_entro"] = _min_k_renyi_05_entro
 
     return pred
@@ -108,22 +108,7 @@ def aug_k(probabilities, log_probabilities, cfg):
 
 def min_k(all_prob, cfg):
     
-    ratio = cfg.ratio
-    # result = dict()
-    # for aug_name, aug_list in all_prob.items():
-    #     result[aug_name] = list()
-    #     for _aug in aug_list:
-    #         _result = dict()
-    #         for _ratio in ratio:
-    #             k_length = int(len(_prob)*_ratio)
-    #             if k_length == 0:
-    #                 k_length = 1
-    #             _result[f"Min_{_ratio*100}% prob"] = list()
-    #             for _prob in _aug:
-    #                 token_prob = np.sort(_prob)[:k_length]
-    #                 _result.append(-1 * np.mean(_prob).item())
-    #         result[aug_name].append(_result)
-     
+    ratio = cfg.ratio     
 
     result = dict()
     for _ratio in ratio: 

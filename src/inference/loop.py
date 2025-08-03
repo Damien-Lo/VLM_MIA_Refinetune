@@ -1,3 +1,5 @@
+import os
+import json
 from tqdm import tqdm
 from src.model import mod_infer_batch
 from src.model.infer import BatchProcessor
@@ -17,7 +19,10 @@ def inference(model, tokenizer, dataset, cfg):
                                      eos_token_id=tokenizer.eos_token_id,
                                      use_augmentation=cfg.inference.use_augmentation)
     parts = cfg.img_metrics.parts
-
+    global_pred = dict()
+    for _part in parts:
+        global_pred[_part] = dict()
+    
     for b_idx, batch in enumerate(tqdm(batch_processor,
                                        total=len(batch_processor),
                                        desc="Running inference",
@@ -27,16 +32,26 @@ def inference(model, tokenizer, dataset, cfg):
                                        use_augmentation=cfg.inference.use_augmentation)
 
         # Process separately for each part
-        pred_all_parts = dict()
         for _part in parts:
             _meta_metrics = get_meta_metrics_by_part(target_parts,
                                                      part=_part,
-                                                    cfg=cfg)
+                                                    cfg=cfg)            
             _pred = get_img_metric_by_parts(_meta_metrics, cfg)
-            pred_all_parts[_part] = _pred
-    
-        print("Initial batch done")
-        exit()
+            
+            for metric_name, metric_values in _pred.items():
+                if metric_name not in global_pred[_part]:
+                    # Initialize the dictionary
+                    if isinstance(metric_values, list):
+                        global_pred[_part][metric_name] = list()
+                    elif isinstance(metric_values, dict):
+                        global_pred[_part][metric_name] = dict()
+                        for metric_key in metric_values.keys():
+                            global_pred[_part][metric_name][metric_key] = list()
+                if isinstance(metric_values, list):
+                    global_pred[_part][metric_name].extend(metric_values)
+                elif isinstance(metric_values, dict):
+                    for _key, _value in metric_values.items():
+                        global_pred[_part][metric_name][_key].extend(_value)
 
-def combine_batch_preds(pred):
-    pass
+    return global_pred
+

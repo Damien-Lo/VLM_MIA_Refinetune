@@ -55,8 +55,9 @@ def main(cfg):
 
     mod_infer_data = get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, model.config, conv_mode)
 
-    inference(model, tokenizer, mod_infer_data, cfg)
+    preds = inference(model, tokenizer, mod_infer_data, cfg)
 
+    
 
 if __name__ == "__main__":
     main()

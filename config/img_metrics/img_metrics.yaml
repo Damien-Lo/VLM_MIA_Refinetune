@@ -8,9 +8,9 @@ defaults:
   - metrics@min_k_renyi_2_entro : min_k_renyi_2_entro
   - metrics@min_k_renyi_05_entro : min_k_renyi_05_entro
   - metrics@mink : mink
-  - metrics@mod_entro : mod_entro
-  - metrics@mod_renyi_2 : mod_renyi_2
-  - metrics@mod_renyi_05 : mod_renyi_05
+  - metrics@mod_renyi_1_entro : mod_renyi_1_entro
+  - metrics@mod_renyi_2_entro : mod_renyi_2_entro
+  - metrics@mod_renyi_05_entro : mod_renyi_05_entro
   - metrics@renyi_1 : renyi_1
   - metrics@renyi_2 : renyi_2
   - metrics@renyi_05 : renyi_05
