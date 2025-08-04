@@ -46,6 +46,9 @@ def main(cfg):
     preds = inference(model, tokenizer, mod_infer_data, cfg)
     
     auc, acc, auc_low = evaluate(preds, mod_infer_data["label"], "img")
+
+    # Save
+    save_to_json(preds, "preds", cfg)
     save_to_json(auc, "auc", cfg)
     save_to_json(acc, "acc", cfg)
     save_to_json(auc_low, "auc_low", cfg)

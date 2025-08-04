@@ -72,6 +72,8 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
     meta_metrics["ppl"] = dict()
     meta_metrics["entropies"] = dict()
     meta_metrics["all_prob"] = dict()
+    meta_metrics["probabilities"] = dict()
+    meta_metrics["log_probabilities"] = dict()
     meta_metrics["modified_entropies"] = dict()
     meta_metrics["max_probs"] = dict()
     meta_metrics["gap_probs"] = dict()
@@ -85,6 +87,9 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
     meta_metrics["renyi_1_probs"] = dict()
     meta_metrics["renyi_2_probs"] = dict()
     meta_metrics["renyi_inf_probs"] = dict()
+    
+    # Here add our metrics
+    meta_metrics["per_token_CE_loss"] = dict()
 
     epsilon = 1e-10
 
@@ -92,6 +97,8 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
         meta_metrics["ppl"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["entropies"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["all_prob"][aug_type] = [[] for _ in range(len(aug_results))]
+        meta_metrics["probabilities"][aug_type] = [[] for _ in range(len(aug_results))]
+        meta_metrics["log_probabilities"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["modified_entropies"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["max_probs"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["gap_probs"][aug_type] = [[] for _ in range(len(aug_results))]
@@ -106,10 +113,18 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
         meta_metrics["renyi_2_probs"][aug_type] = [[] for _ in range(len(aug_results))]
         meta_metrics["renyi_inf_probs"][aug_type] = [[] for _ in range(len(aug_results))]
 
+        # Add our metrics
+        meta_metrics["per_token_CE_loss"][aug_type] = [[] for _ in range(len(aug_results))]
+
         for aug_idx, aug_result in enumerate(aug_results):
+            # If a metric is obtained using the entire logits/input_ids, use list()
+            # If a metric is obtained for each token_position, use [[] for _ in range(len(aug_result[part]["input_ids"]))]
+        
             meta_metrics["ppl"][aug_type][aug_idx] = list()
             meta_metrics["entropies"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["all_prob"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
+            meta_metrics["probabilities"][aug_type][aug_idx] = list()
+            meta_metrics["log_probabilities"][aug_type][aug_idx] = list()
             meta_metrics["modified_entropies"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["max_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["gap_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
@@ -124,8 +139,15 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
             meta_metrics["renyi_2_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["renyi_inf_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
 
+            # Add our metrics
+            meta_metrics["per_token_CE_loss"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
+
+            meta_metrics["probabilities"][aug_type]
             for _batch_idx in range(len(aug_result[part]["input_ids"])):
                 for _token_idx, token_id in enumerate(aug_result[part]["input_ids"][_batch_idx][1:]):
+                    # Theis is where the per-token metrics are computed
+                    # If a meta_metric is a tensor, set them to numpy array.
+
                     token_probs = aug_result[part]["probabilities"][_batch_idx][_token_idx, :]
                     token_log_probs = aug_result[part]["log_probabilities"][_batch_idx][_token_idx, :]
                     token_probs_clamped = torch.clamp(token_probs, min=epsilon, max=1-epsilon)
@@ -180,7 +202,13 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
                         if alpha==2:
                             meta_metrics["modified_entropies_alpha_2"][aug_type][aug_idx][_batch_idx].append(entropy)
 
+                    # Add our metrics
+                    _ce_loss = -token_log_probs[token_id].cpu().numpy()
+                    meta_metrics["per_token_CE_loss"][aug_type][aug_idx][_batch_idx].append(_ce_loss)
+
                 loss = np.nanmean(meta_metrics["losses"][aug_type][aug_idx][_batch_idx])
                 meta_metrics["ppl"][aug_type][aug_idx].append(np.exp(loss))
+                meta_metrics["probabilities"][aug_type][aug_idx].append(aug_result[part]["probabilities"][_batch_idx].cpu().numpy())
+                meta_metrics["log_probabilities"][aug_type][aug_idx].append(aug_result[part]["log_probabilities"][_batch_idx].cpu().numpy())
     
     return meta_metrics

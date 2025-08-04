@@ -15,6 +15,7 @@ defaults:
   - metrics@renyi_2 : renyi_2
   - metrics@renyi_05 : renyi_05
   - metrics@renyi_05_full : renyi_05_full
+  - metrics@cross_entropy_mink : cross_entropy_mink
 
 metrics_to_use: ???
 parts: ???
