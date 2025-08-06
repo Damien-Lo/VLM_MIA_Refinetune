@@ -1,6 +1,7 @@
 
 import torch
 import numpy as np
+import sys
 
 def renyi_probs(token_probs_clamped, alpha):
     if alpha == "inf":
@@ -27,7 +28,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
     {
         "orig" : 
         {   
-            [
+            [{
                 "img" : {
                     "logits : [
                         (sample 1 img logits),
@@ -47,7 +48,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
                     "probabilities : [],
                     "log_probabilities : []
                 }
-            ]
+            }]
         }    
         "aug_1" : [
             {...},
@@ -119,7 +120,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
         for aug_idx, aug_result in enumerate(aug_results):
             # If a metric is obtained using the entire logits/input_ids, use list()
             # If a metric is obtained for each token_position, use [[] for _ in range(len(aug_result[part]["input_ids"]))]
-        
+            
             meta_metrics["ppl"][aug_type][aug_idx] = list()
             meta_metrics["entropies"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["all_prob"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
@@ -142,7 +143,6 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
             # Add our metrics
             meta_metrics["per_token_CE_loss"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
 
-            meta_metrics["probabilities"][aug_type]
             for _batch_idx in range(len(aug_result[part]["input_ids"])):
                 for _token_idx, token_id in enumerate(aug_result[part]["input_ids"][_batch_idx][1:]):
                     # Theis is where the per-token metrics are computed

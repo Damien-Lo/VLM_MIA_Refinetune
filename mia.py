@@ -19,6 +19,8 @@ def main(cfg):
     # Print cfgs
 
     print(cfg)
+    if cfg.test_run.test_run:
+        print("This is a test run")
 
     # Load the target model
     model_name = get_model_name_from_path(cfg.target_model.model_path)
@@ -45,7 +47,14 @@ def main(cfg):
 
     preds = inference(model, tokenizer, mod_infer_data, cfg)
     
-    auc, acc, auc_low = evaluate(preds, mod_infer_data["label"], "img")
+    print("Label len: ")
+    print(len(mod_infer_data["label"]))
+    
+    print("Preds Shape: ")
+    print(len(preds))
+    print(preds)
+    
+    auc, acc, auc_low = evaluate(preds, mod_infer_data["label"], "img", cfg)
 
     # Save
     save_to_json(preds, "preds", cfg)

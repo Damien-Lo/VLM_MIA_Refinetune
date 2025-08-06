@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from src.metrics.baseline_metrics import aug_kl, min_k, mod_entropy, mod_renyi, max_prob_gap, max_entropy, min_entropy
-from src.metrics.proposed_metrics import cross_entropy_mink, cross_entropy_diff_mink
+from src.metrics.proposed_metrics import cross_entropy_mink, cross_entropy_diff_mink, renyi_kl_div_mink
 
 def get_img_metric_by_parts(meta_metrics, cfg):
     """
@@ -91,5 +91,22 @@ def get_img_metric_by_parts(meta_metrics, cfg):
     if "cross_entropy_diff_mink" in cfg.img_metrics.metrics_to_use:
         _cross_entropy_diff_min_k = cross_entropy_diff_mink(meta_metrics["per_token_CE_loss"], cfg.img_metrics.cross_entropy_mink)
         pred["cross_entropy_diff_min_k"] = _cross_entropy_diff_min_k
+        
+        
+    if "min_k_renyi_05_kl_div" in cfg.img_metrics.metrics_to_use:
+        _mink_k_renyi_05_kl_div = renyi_kl_div_mink(meta_metrics['renyi_05_probs'], cfg.img_metrics.min_k_renyi_05_kl_div)
+        pred["min_k_renyi_05_kl_div"] = _mink_k_renyi_05_kl_div
+        
+    if "min_k_renyi_1_kl_div" in cfg.img_metrics.metrics_to_use:
+        _mink_k_renyi_1_kl_div = renyi_kl_div_mink(meta_metrics['renyi_1_probs'], cfg.img_metrics.min_k_renyi_1_kl_div)
+        pred["min_k_renyi_1_kl_div"] = _mink_k_renyi_1_kl_div
+        
+    if "min_k_renyi_2_kl_div" in cfg.img_metrics.metrics_to_use:
+        _mink_k_renyi_2_kl_div = renyi_kl_div_mink(meta_metrics['renyi_2_probs'], cfg.img_metrics.min_k_renyi_2_kl_div)
+        pred["min_k_renyi_2_kl_div"] = _mink_k_renyi_2_kl_div
+        
+    if "min_k_renyi_inf_kl_div" in cfg.img_metrics.metrics_to_use:
+        _mink_k_renyi_inf_kl_div = renyi_kl_div_mink(meta_metrics['renyi_inf_probs'], cfg.img_metrics.min_k_renyi_inf_kl_div)
+        pred["min_k_renyi_inf_kl_div"] = _mink_k_renyi_inf_kl_div
     
     return pred

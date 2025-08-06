@@ -27,6 +27,12 @@ def inference(model, tokenizer, dataset, cfg):
                                        total=len(batch_processor),
                                        desc="Running inference",
                                        unit="batch")):
+        
+        # For Test Run, just run 1 batch
+        if cfg.test_run.test_run and b_idx >= 1:
+            break
+            
+        
         target_parts = mod_infer_batch(model, batch, tokenizer,
                                        parts=parts,
                                        use_augmentation=cfg.inference.use_augmentation)

@@ -28,7 +28,7 @@ def auc_acc_low(prediction, answers, sweep_fn=sweep, low=0.05 ):
     return auc, acc, low
 
 
-def evaluate(preds, labels, part):
+def evaluate(preds, labels, part, cfg):
     """
     pred: predictions with every metrics
     """
@@ -36,6 +36,12 @@ def evaluate(preds, labels, part):
     auc_results = dict()
     acc_results = dict()
     auc_low_results = dict()
+    
+    used_labels = labels
+    
+    if cfg.test_run.test_run:
+        used_labels = labels[:cfg.inference.batch_size]
+        
 
     for _part, _part_pred in preds.items():
         if _part not in auc_results:
@@ -44,7 +50,7 @@ def evaluate(preds, labels, part):
             auc_low_results[_part] = dict()
         for _metric, _metric_val in _part_pred.items():
             if isinstance(_metric_val, list):
-                auc_val, acc_val, auc_low_val = auc_acc_low(prediction=_metric_val, answers=labels)
+                auc_val, acc_val, auc_low_val = auc_acc_low(prediction=_metric_val, answers=used_labels)
                 auc_results[_part][_metric] = auc_val
                 acc_results[_part][_metric] = acc_val
                 auc_low_results[_part][_metric] = auc_low_val
@@ -54,7 +60,7 @@ def evaluate(preds, labels, part):
                 acc_results[_part][_metric] = dict()
                 auc_low_results[_part][_metric] = dict()
                 for _sub_metric, _sub_metric_val in _metric_val.items():
-                    auc_val, acc_val, auc_low_val = auc_acc_low(prediction=_sub_metric_val, answers=labels)
+                    auc_val, acc_val, auc_low_val = auc_acc_low(prediction=_sub_metric_val, answers=used_labels)
                     auc_results[_part][_metric][_sub_metric] = auc_val
                     acc_results[_part][_metric][_sub_metric] = acc_val
                     auc_low_results[_part][_metric][_sub_metric] = auc_low_val

@@ -8,6 +8,9 @@ defaults:
   - prompt: image
   - path: path
   - wandb : wandb
+  - test_run: test_run
+
+
 
 hydra:
   run:

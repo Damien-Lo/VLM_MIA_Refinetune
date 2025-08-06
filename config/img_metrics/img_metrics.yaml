@@ -16,6 +16,9 @@ defaults:
   - metrics@renyi_05 : renyi_05
   - metrics@renyi_05_full : renyi_05_full
   - metrics@cross_entropy_mink : cross_entropy_mink
+  - metrics@min_k_renyi_05_kl_div: min_k_renyi_05_kl_div
+  - metrics@min_k_renyi_1_kl_div: min_k_renyi_1_kl_div
+  - metrics@min_k_renyi_2_kl_div: min_k_renyi_2_kl_div
 
 metrics_to_use: ???
 parts: ???
