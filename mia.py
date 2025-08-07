@@ -47,13 +47,6 @@ def main(cfg):
 
     preds = inference(model, tokenizer, mod_infer_data, cfg)
     
-    print("Label len: ")
-    print(len(mod_infer_data["label"]))
-    
-    print("Preds Shape: ")
-    print(len(preds))
-    print(preds)
-    
     auc, acc, auc_low = evaluate(preds, mod_infer_data["label"], "img", cfg)
 
     # Save

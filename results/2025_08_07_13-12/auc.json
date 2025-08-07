@@ -1,0 +1,82 @@
+{
+    "img": {
+        "min_k_renyi_05_kl_div": {
+            "Min_0_renyi_05_kld_avged_aug_avged_versions": 0.5761222222222223,
+            "Min_0.05_renyi_05_kld_avged_aug_avged_versions": 0.5948666666666667,
+            "Min_0.1_renyi_05_kld_avged_aug_avged_versions": 0.6058777777777777,
+            "Min_0.2_renyi_05_kld_avged_aug_avged_versions": 0.6180111111111111,
+            "Min_0.3_renyi_05_kld_avged_aug_avged_versions": 0.6254333333333333,
+            "Min_0.4_renyi_05_kld_avged_aug_avged_versions": 0.628,
+            "Min_0.5_renyi_05_kld_avged_aug_avged_versions": 0.6312111111111111,
+            "Min_0.6_renyi_05_kld_avged_aug_avged_versions": 0.6346166666666667,
+            "Min_0.7_renyi_05_kld_avged_aug_avged_versions": 0.6360333333333333,
+            "Min_0.8_renyi_05_kld_avged_aug_avged_versions": 0.6369333333333334,
+            "Min_0.9_renyi_05_kld_avged_aug_avged_versions": 0.6355888888888889
+        },
+        "min_k_renyi_1_kl_div": {
+            "Min_0_renyi_1_kld_avged_aug_avged_versions": 0.5714111111111111,
+            "Min_0.05_renyi_1_kld_avged_aug_avged_versions": 0.5950111111111112,
+            "Min_0.1_renyi_1_kld_avged_aug_avged_versions": 0.606,
+            "Min_0.2_renyi_1_kld_avged_aug_avged_versions": 0.6154777777777778,
+            "Min_0.3_renyi_1_kld_avged_aug_avged_versions": 0.6185,
+            "Min_0.4_renyi_1_kld_avged_aug_avged_versions": 0.6211111111111111,
+            "Min_0.5_renyi_1_kld_avged_aug_avged_versions": 0.6226333333333334,
+            "Min_0.6_renyi_1_kld_avged_aug_avged_versions": 0.6247222222222223,
+            "Min_0.7_renyi_1_kld_avged_aug_avged_versions": 0.6254111111111111,
+            "Min_0.8_renyi_1_kld_avged_aug_avged_versions": 0.6262,
+            "Min_0.9_renyi_1_kld_avged_aug_avged_versions": 0.6258444444444444
+        },
+        "min_k_renyi_2_kl_div": {
+            "Min_0_renyi_2_kld_avged_aug_avged_versions": 0.5663666666666667,
+            "Min_0.05_renyi_2_kld_avged_aug_avged_versions": 0.609111111111111,
+            "Min_0.1_renyi_2_kld_avged_aug_avged_versions": 0.6125444444444444,
+            "Min_0.2_renyi_2_kld_avged_aug_avged_versions": 0.6111777777777778,
+            "Min_0.3_renyi_2_kld_avged_aug_avged_versions": 0.6084333333333334,
+            "Min_0.4_renyi_2_kld_avged_aug_avged_versions": 0.6063999999999999,
+            "Min_0.5_renyi_2_kld_avged_aug_avged_versions": 0.6040333333333333,
+            "Min_0.6_renyi_2_kld_avged_aug_avged_versions": 0.6019555555555555,
+            "Min_0.7_renyi_2_kld_avged_aug_avged_versions": 0.5999888888888889,
+            "Min_0.8_renyi_2_kld_avged_aug_avged_versions": 0.5981888888888889,
+            "Min_0.9_renyi_2_kld_avged_aug_avged_versions": 0.5964333333333333
+        },
+        "min_k_renyi_divergence_05": {
+            "Min_0_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.5757555555555556,
+            "Min_0.05_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.5840888888888889,
+            "Min_0.1_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.5963888888888889,
+            "Min_0.2_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6063999999999999,
+            "Min_0.3_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6113333333333333,
+            "Min_0.4_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6134666666666666,
+            "Min_0.5_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6154,
+            "Min_0.6_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6168444444444443,
+            "Min_0.7_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6167222222222222,
+            "Min_0.8_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6176777777777778,
+            "Min_0.9_renyi_div_alpha_0.5_avged_aug_avged_versions": 0.6179555555555556
+        },
+        "min_k_renyi_divergence_2": {
+            "Min_0_renyi_div_alpha_2_avged_aug_avged_versions": 0.5644222222222222,
+            "Min_0.05_renyi_div_alpha_2_avged_aug_avged_versions": 0.6037444444444444,
+            "Min_0.1_renyi_div_alpha_2_avged_aug_avged_versions": 0.6102111111111111,
+            "Min_0.2_renyi_div_alpha_2_avged_aug_avged_versions": 0.612111111111111,
+            "Min_0.3_renyi_div_alpha_2_avged_aug_avged_versions": 0.6151222222222222,
+            "Min_0.4_renyi_div_alpha_2_avged_aug_avged_versions": 0.6165333333333334,
+            "Min_0.5_renyi_div_alpha_2_avged_aug_avged_versions": 0.6195666666666667,
+            "Min_0.6_renyi_div_alpha_2_avged_aug_avged_versions": 0.6220111111111111,
+            "Min_0.7_renyi_div_alpha_2_avged_aug_avged_versions": 0.6223111111111111,
+            "Min_0.8_renyi_div_alpha_2_avged_aug_avged_versions": 0.6235444444444445,
+            "Min_0.9_renyi_div_alpha_2_avged_aug_avged_versions": 0.6215222222222222
+        },
+        "min_k_renyi_divergence_4": {
+            "Min_0_renyi_div_alpha_4_avged_aug_avged_versions": 0.5624111111111112,
+            "Min_0.05_renyi_div_alpha_4_avged_aug_avged_versions": 0.5951555555555557,
+            "Min_0.1_renyi_div_alpha_4_avged_aug_avged_versions": 0.5910111111111112,
+            "Min_0.2_renyi_div_alpha_4_avged_aug_avged_versions": 0.5905666666666667,
+            "Min_0.3_renyi_div_alpha_4_avged_aug_avged_versions": 0.5915611111111111,
+            "Min_0.4_renyi_div_alpha_4_avged_aug_avged_versions": 0.5943222222222223,
+            "Min_0.5_renyi_div_alpha_4_avged_aug_avged_versions": 0.5975,
+            "Min_0.6_renyi_div_alpha_4_avged_aug_avged_versions": 0.6013444444444445,
+            "Min_0.7_renyi_div_alpha_4_avged_aug_avged_versions": 0.6038555555555556,
+            "Min_0.8_renyi_div_alpha_4_avged_aug_avged_versions": 0.6048777777777777,
+            "Min_0.9_renyi_div_alpha_4_avged_aug_avged_versions": 0.6042222222222222
+        }
+    }
+}

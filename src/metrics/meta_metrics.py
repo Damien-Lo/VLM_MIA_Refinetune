@@ -135,7 +135,7 @@ def get_meta_metrics_by_part(total_parts, part, cfg):
             meta_metrics["modified_entropies"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["modified_entropies_alpha_05"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["modified_entropies_alpha_2"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
-            meta_metrics["renyi_05_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
+            meta_metrics["renyi_05_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]         # 2d array (token_seq, vocab_size)
             meta_metrics["renyi_1_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["renyi_2_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]
             meta_metrics["renyi_inf_probs"][aug_type][aug_idx] = [[] for _ in range(len(aug_result[part]["input_ids"]))]

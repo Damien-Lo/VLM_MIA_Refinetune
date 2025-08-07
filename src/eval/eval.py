@@ -11,6 +11,16 @@ import random
 import os
 
 
+def format_to_json(value):
+        if isinstance(value, (np.integer, np.int32, np.int64)):
+            return int(value)
+        elif isinstance(value, (np.floating, np.float32, np.float64)):
+            return float(value)
+        elif isinstance(value, (np.ndarray,)):
+            return value.tolist()
+        return super().default(value)
+
+
 def sweep(score, x):
     """
     Compute a ROC curve and then return the FPR, TPR, AUC, and ACC.
@@ -61,8 +71,9 @@ def evaluate(preds, labels, part, cfg):
                 auc_low_results[_part][_metric] = dict()
                 for _sub_metric, _sub_metric_val in _metric_val.items():
                     auc_val, acc_val, auc_low_val = auc_acc_low(prediction=_sub_metric_val, answers=used_labels)
-                    auc_results[_part][_metric][_sub_metric] = auc_val
-                    acc_results[_part][_metric][_sub_metric] = acc_val
-                    auc_low_results[_part][_metric][_sub_metric] = auc_low_val
+                    auc_results[_part][_metric][_sub_metric] = format_to_json(auc_val)
+                    acc_results[_part][_metric][_sub_metric] = format_to_json(acc_val)
+                    auc_low_results[_part][_metric][_sub_metric] = format_to_json(auc_low_val)
 
     return auc_results, acc_results, auc_low_results
+

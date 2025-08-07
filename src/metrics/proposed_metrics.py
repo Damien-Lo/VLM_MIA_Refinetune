@@ -141,23 +141,25 @@ def renyi_kl_div_mink(renyi_probs, cfg):
     result = dict()
     original_probs = renyi_probs['orig'][0]
 
+
     setting_version_accumilator = cfg.augmentation_accumilator
     aug_version_accumilator = cfg.augmentation_setting_version_accumilator
 
     per_sample_kld = list()
+    
+    setting_aggregated_per_sample_tokenwise_kl = defaultdict(list) #per token kld aggregated over all settings {sample: (num_of_aug, setting_agg_tkn_seq)}
 
     for aug, settings in renyi_probs.items():
         if aug == "orig":
             continue
 
-        per_sample_tokenwise_kl = defaultdict(list)
+        per_sample_tokenwise_kl = defaultdict(list) # per token kld per setting {sample: (num_of_settings, tkn_seq)}
 
         for setting in settings:
             for sample_idx, aug_probs in enumerate(setting):
                 kl = kl_div_per_token(torch.stack(original_probs[sample_idx]).cpu().numpy(), np.log(torch.stack(original_probs[sample_idx]).cpu().numpy()), np.log(torch.stack(aug_probs).cpu().numpy()))
                 per_sample_tokenwise_kl[sample_idx].append(kl)
-
-        setting_aggregated_per_sample_tokenwise_kl = defaultdict(list)
+                
 
         if setting_version_accumilator == 'max':
             for idx, sample in per_sample_tokenwise_kl.items():
@@ -170,14 +172,16 @@ def renyi_kl_div_mink(renyi_probs, cfg):
                 setting_aggregated_per_sample_tokenwise_kl[idx].append(
                     np.mean(np.array(sample), axis=0)
                 )
+        
 
-        if aug_version_accumilator == 'max':
-            for _, sample in setting_aggregated_per_sample_tokenwise_kl.items():
-                per_sample_kld.append(np.max(np.array(sample), axis=0))
 
-        if aug_version_accumilator == 'avg':
-            for _, sample in setting_aggregated_per_sample_tokenwise_kl.items():
-                per_sample_kld.append(np.mean(np.array(sample), axis=0))
+    if aug_version_accumilator == 'max':
+        for _, sample in setting_aggregated_per_sample_tokenwise_kl.items():
+            per_sample_kld.append(np.max(np.array(sample), axis=0))
+
+    if aug_version_accumilator == 'avg':
+        for _, sample in setting_aggregated_per_sample_tokenwise_kl.items():
+            per_sample_kld.append(np.mean(np.array(sample), axis=0))
 
     # Min-K
     for _ratio in ratio:
@@ -187,14 +191,84 @@ def renyi_kl_div_mink(renyi_probs, cfg):
             k_length = int(_ratio * len(sample))
             if k_length == 0:
                 k_length = 1
-            min_k_kl.append(np.mean(np.sort(sample)[:k_length]))
-            if key not in result: 
-                result[key] = list()
+            min_k_kl.append(float(-1 * np.mean(np.sort(sample)[-k_length:])))
             result[key] = min_k_kl
 
     return result
 
 
 def kl_div_per_token(org_probs, org_log_probs, aug_log_probs):
-    return org_probs * (org_log_probs - aug_log_probs)
+    return np.sum(org_probs * (org_log_probs - aug_log_probs),axis=1)
     
+    
+    
+def renyi_divergence_mink(probs, cfg):
+    ratio = cfg.ratio
+    alpha = cfg.alpha
+    result = dict()
+    original_probs = probs['orig'][0]
+
+    setting_version_accumilator = cfg.augmentation_accumilator
+    aug_version_accumilator = cfg.augmentation_setting_version_accumilator
+
+    per_sample_divergence = list()
+    
+    setting_aggregated_per_sample_tokenwise_renyi_div = defaultdict(list) #per token kld aggregated over all settings {sample: (num_of_aug, setting_agg_tkn_seq)}
+
+    for aug, settings in probs.items():
+        if aug == "orig":
+            continue
+
+        per_sample_tokenwise_renyi_div = defaultdict(list) # per token kld per setting {sample: (num_of_settings, tkn_seq)}
+
+        for setting in settings:
+            for sample_idx, aug_probs in enumerate(setting):
+                kl = renyi_div_per_token(np.stack(original_probs[sample_idx]),
+                                        np.stack(aug_probs),
+                                         alpha,
+                                         1e-12)
+                per_sample_tokenwise_renyi_div[sample_idx].append(kl)
+                
+
+        if setting_version_accumilator == 'max':
+            for idx, sample in per_sample_tokenwise_renyi_div.items():
+                setting_aggregated_per_sample_tokenwise_renyi_div[idx].append(
+                    np.max(np.array(sample), axis=0)
+                )
+
+        if setting_version_accumilator == 'avg':
+            for idx, sample in per_sample_tokenwise_renyi_div.items():
+                setting_aggregated_per_sample_tokenwise_renyi_div[idx].append(
+                    np.mean(np.array(sample), axis=0)
+                )
+        
+
+
+    if aug_version_accumilator == 'max':
+        for _, sample in setting_aggregated_per_sample_tokenwise_renyi_div.items():
+            per_sample_divergence.append(np.max(np.array(sample), axis=0))
+
+    if aug_version_accumilator == 'avg':
+        for _, sample in setting_aggregated_per_sample_tokenwise_renyi_div.items():
+            per_sample_divergence.append(np.mean(np.array(sample), axis=0))
+
+    # Min-K
+    for _ratio in ratio:
+        key = f"Min_{_ratio}_renyi_div_alpha_{alpha}_{aug_version_accumilator}ed_aug_{setting_version_accumilator}ed_versions"
+        min_k_kl = list()
+        for sample in per_sample_divergence:
+            k_length = int(_ratio * len(sample))
+            if k_length == 0:
+                k_length = 1
+            min_k_kl.append(float(-1 * np.mean(np.sort(sample)[-k_length:])))
+            result[key] = min_k_kl
+
+    return result
+
+
+
+def renyi_div_per_token(org_probs, aug_probs, alpha, eps=1e-12):
+    org_probs = np.clip(org_probs, eps, 1.0)
+    aug_probs = np.clip(aug_probs, eps, 1.0)
+    divergence = (1 / (alpha - 1)) * np.log(np.sum(org_probs**alpha * aug_probs**(1 - alpha), axis=1) + eps)
+    return divergence

@@ -19,6 +19,11 @@ defaults:
   - metrics@min_k_renyi_05_kl_div: min_k_renyi_05_kl_div
   - metrics@min_k_renyi_1_kl_div: min_k_renyi_1_kl_div
   - metrics@min_k_renyi_2_kl_div: min_k_renyi_2_kl_div
+  - metrics@min_k_renyi_inf_kl_div: min_k_renyi_inf_kl_div
+  - metrics@min_k_renyi_divergence_025: min_k_renyi_divergence_025
+  - metrics@min_k_renyi_divergence_05: min_k_renyi_divergence_05
+  - metrics@min_k_renyi_divergence_2: min_k_renyi_divergence_2
+  - metrics@min_k_renyi_divergence_4: min_k_renyi_divergence_4
 
 metrics_to_use: ???
 parts: ???
