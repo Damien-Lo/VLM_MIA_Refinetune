@@ -15,7 +15,10 @@ conda activate vlm_large_mia_llava_venv
 export PYTHONPATH=$PYTHONPATH:/local/scratch/clo37/vlm_large_mia/
 
 python /home/clo37/priv/VLM-MIA-Study/mia.py \
-    img_metrics.metrics_to_use=["min_k_renyi_05_kl_div","min_k_renyi_1_kl_div","min_k_renyi_2_kl_div","min_k_renyi_divergence_25","min_k_renyi_divergence_05","min_k_renyi_divergence_2","min_k_renyi_divergence_4"] \
+    img_metrics.metrics_to_use=["min_k_renyi_05_kl_div","min_k_renyi_inf_kl_div","min_k_renyi_divergence_25","min_k_renyi_divergence_4"] \
     img_metrics.parts=["img"] \
     test_run.test_run=true \
     path.output_dir=/home/clo37/priv/VLM-MIA-Study/results/TEST_MIA \
+
+
+
