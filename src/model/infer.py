@@ -189,6 +189,7 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
 
     def _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape):
         target_parts = dict()
+        labels_per_sample = list()
         for _input_ids, _logits, _attention_mask, _prompt_0, _prompt_1, _desc_shape \
             in zip(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape):
 
@@ -222,8 +223,15 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
                 _slice_logits = _logits[_slice, :]
                 target_parts[p]["probabilities"].append(torch.nn.functional.softmax(_slice_logits, dim=-1))
                 target_parts[p]["log_probabilities"].append(torch.nn.functional.log_softmax(_slice_logits, dim=-1))
-        
-        return target_parts
+                
+            # Building Total Label
+            labels = [''] * _mix_input_ids.shape[0]
+            labels[_img_slice] = ['img']  * len(_mix_input_ids[_img_slice])
+            labels[_inst]      = ['inst'] * len(_mix_input_ids[_inst])
+            labels[_desc]      = ['desc'] * len(_mix_input_ids[_desc])
+            labels_per_sample.append(labels)
+
+        return target_parts, labels_per_sample
         
 
     if use_augmentation:
@@ -237,6 +245,7 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
         desc_shape = batch["desc_shape"]
         
         total_parts = dict()
+        total_token_labels = list()
 
         # 1. Conduct inference using the original images
         with torch.no_grad():
@@ -248,8 +257,10 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
             )
 
         logits = outputs.logits
-        target_parts = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
+        target_parts, labels_per_sample = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
         total_parts["orig"] = [target_parts]
+        total_token_labels.extend(labels_per_sample)
+        
         
         # 2. Conduct inference using the augmented images
         for k, aug_images in batch["aug_image_tensors"].items():
@@ -263,13 +274,15 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
                         image_sizes=image_sizes
                     )
                 logits = outputs.logits
-                target_parts = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
+                target_parts, labels_per_sample = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
                 total_parts[k].append(target_parts)
 
-        return total_parts
+        return total_parts, total_token_labels
 
     else:
         total_parts = dict()
+        total_token_labels = list()
+        
 
         input_ids = batch["input_ids"].cuda()
         image_tensors = batch["image_tensors"].cuda()
@@ -289,7 +302,8 @@ def mod_infer_batch(model, batch, tokenizer, parts, use_augmentation):
             )
 
         logits = outputs.logits
-        target_parts = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
+        target_parts, labels_per_sample = _get_parts(input_ids, logits, attention_masks, prompt_0, prompt_1, desc_shape)
         total_parts["orig"] = [target_parts]
+        total_token_labels.extend(labels_per_sample)
 
-        return total_parts
+        return total_parts, total_token_labels
