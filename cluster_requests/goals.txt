@@ -1,0 +1,4 @@
+1. Finish the gaussian up to 50
+2. Random rotation 0.1-1deg
+3. Look more into what random-resize does
+4. Remove aboslute from difference

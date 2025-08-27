@@ -14,12 +14,17 @@ conda activate vlm_large_mia_llava_venv
 
 export PYTHONPATH=$PYTHONPATH:/local/scratch/clo37/vlm_large_mia/
 python /home/clo37/priv/VLM-MIA-Study/mia.py \
-    img_metrics.metrics_to_use=["min_k_renyi_divergence_025"] \
+    test_run.test_run=true \
+    img_metrics.metrics_to_use=["aug_kl","mink","mod_renyi_1_entro","mod_renyi_05_entro","mod_renyi_2_entro","max_prob_gap","max_k_renyi_1_entro","max_k_renyi_2_entro","max_k_renyi_05_entro","min_k_renyi_1_entro","min_k_renyi_2_entro","min_k_renyi_05_entro","cross_entropy_mink","cross_entropy_diff_mink"] \
     img_metrics.parts=["img"] \
     path.output_dir=/home/clo37/priv/VLM-MIA-Study/results/TEST_MIA1 \
-    img_metrics.get_meta_values=15 \
-    img_metrics.get_token_labels=15 \
-    test_run.test_run=true \
+    img_metrics.get_meta_values=0 \
+    img_metrics.get_token_labels=0 \
+    data.augmentations.RandomResize.use=true \
+    data.augmentations.RandomRotation.use=true \
+    data.augmentations.GaussianNoise.use=true \
+    data.augmentations.RandomAffine.use=true \
+    
 
 
 
