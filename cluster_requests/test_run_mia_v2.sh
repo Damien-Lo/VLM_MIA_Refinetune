@@ -18,14 +18,20 @@ python /home/clo37/priv/VLM-MIA-Study/mia.py \
     img_metrics.metrics_to_use=["min_k_renyi_05_kl_div","min_k_renyi_divergence_025"] \
     img_metrics.parts=["img"] \
     path.output_dir=/home/clo37/priv/VLM-MIA-Study/results/TEST_MIA2 \
-    img_metrics.get_meta_values=15 \
-    img_metrics.get_token_labels=15 \
+    img_metrics.get_meta_values=0 \
+    img_metrics.get_token_labels=0 \
+    img_metrics.get_raw_images=3 \
+    data.augmentations.RandomResize.use=false \
     data.augmentations.RandomResize.size='[[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256]]' \
-    data.augmentations.RandomResize.scale='[[0.2,0.2],[0.4,0.4],[0.6,0.6],[0.8,0.8],[1.0,1.0],[0.75,1.33333333],[0.75,1.33333333],[0.75,1.33333333],[0.75,1.33333333],[0.75,1.33333333]]' \
-    data.augmentations.RandomResize.ratio='[[0.08,1.0],[0.08,1.0],[0.08,1.0],[0.08,1.0],[0.08,1.0],[0.5,0.5],[0.75,0.75],[1.0,1.0],[1.25,1.25],[1.5,1.5]]' \
-    data.augmentations.RandomRotation.degrees='[5,30,45,60,90]' \
+    data.augmentations.RandomResize.scale='[[0.2,0.2],[0.4,0.4],[0.6,0.6],[0.8,0.8],[1.0,1.0],[1.0,1.0],[1.0,1.0],[1.0,1.0],[1.0,1.0],[1.0,1.0]]' \
+    data.augmentations.RandomResize.ratio='[[1.0,1.0],[1.0,1.0],[1.0,1.0],[1.0,1.0],[1.0,1.0],[0.5,0.5],[0.75,0.75],[1.0,1.0],[1.25,1.25],[1.5,1.5]]' \
+    data.augmentations.RandomRotation.use=true \
+    data.augmentations.RandomRotation.degrees='[30,45,60,90]' \
+    data.augmentations.GaussianNoise.use=true \
     data.augmentations.GaussianNoise.mean='[0.0,0.0,0.0,0.0,0.0]' \
     data.augmentations.GaussianNoise.std='[1.0,2.0,3.0,4.0,5.0]' \
+    data.augmentations.RandomAffine.use=false \
+    data.augmentations.ColorJitter.use=false\
     
 
 

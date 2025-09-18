@@ -1,0 +1,5 @@
+1. Large range for rotation
+2. Large range for randomresizecrop
+2. Demystify reny_inf normalisation
+3. Get losses for confidence of model
+4. 

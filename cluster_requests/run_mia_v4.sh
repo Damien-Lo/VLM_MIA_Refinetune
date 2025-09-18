@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=run_mia_v2
-#SBATCH --output=out_run_mia_v2.log
+#SBATCH --job-name=run_mia_v3
+#SBATCH --output=out_run_mia_v3.log
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
@@ -17,8 +17,8 @@ export PYTHONPATH=$PYTHONPATH:/local/scratch/clo37/vlm_large_mia/
 python /home/clo37/priv/VLM-MIA-Study/mia.py \
     img_metrics.metrics_to_use=["min_k_renyi_05_kl_div","min_k_renyi_1_kl_div","min_k_renyi_2_kl_div","min_k_renyi_inf_kl_div","min_k_renyi_divergence_025","min_k_renyi_divergence_05","min_k_renyi_divergence_2","min_k_renyi_divergence_4"] \
     img_metrics.parts=["img"] \
-    path.output_dir=/home/clo37/priv/VLM-MIA-Study/LatestResults/2025_09_09_14-45 \
-    img_metrics.get_meta_values=1000 \
+    path.output_dir=/home/clo37/priv/VLM-MIA-Study/LatestResults/2025_09_09_TESTTEST \
+    img_metrics.get_proc_meta_values=1000 \
     img_metrics.get_token_labels=1000 \
     img_metrics.get_raw_images=5 \
     img_metrics.get_raw_meta_values=5 \
@@ -29,7 +29,7 @@ python /home/clo37/priv/VLM-MIA-Study/mia.py \
     data.augmentations.RandomRotation.use=false \
     data.augmentations.RandomRotation.degrees='[0.1,0.2,0.3,0.4,0.5,5,30,45,60,90]' \
     data.augmentations.GaussianNoise.use=true \
-    data.augmentations.GaussianNoise.mean='[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]' \
-    data.augmentations.GaussianNoise.std='[0.01,0.025,0.05,0.075,0.1,0.25,0.5,0.75]' \
+    data.augmentations.GaussianNoise.mean='[0.0,0.0,0.0,0.0,0.0,0.0,0.0]' \
+    data.augmentations.GaussianNoise.std='[100.0,250.0,500.0,750.0,1000.0,2500.0,5000.0]' \
     data.augmentations.RandomAffine.use=false \
     data.augmentations.ColorJitter.use=false\
