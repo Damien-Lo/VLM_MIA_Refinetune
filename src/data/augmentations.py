@@ -9,9 +9,11 @@ def get_augmentations(cfg):
     for key, values in aug_dict.items():
         if key == "RandomResize" and values.use == True:
             _aug_f_list = list()
-            for _size in values.size:
+            for _size, _scale, _ratio in zip(values.size, values.scale, values.ratio):
                 aug_f = transforms.RandomResizedCrop(
                     size=_size,
+                    scale=_scale,
+                    ratio=_ratio
                 )
                 _aug_f_list.append(aug_f)
             aug_func_dict[key] = _aug_f_list

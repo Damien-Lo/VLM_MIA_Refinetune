@@ -27,5 +27,12 @@ defaults:
 
 metrics_to_use: ???
 parts: ???
-get_meta_values: 0
+
 get_token_labels: 0
+get_raw_images: 0
+
+get_raw_meta_examples: 0
+get_raw_meta_metrics: ???
+
+get_proc_meta_examples: 0
+get_proc_meta_metrics: ???

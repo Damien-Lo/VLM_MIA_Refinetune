@@ -1,0 +1,9 @@
+Check Storage Usage:
+du -h --apparent-size --max-depth=1 | sort -h
+
+Check GPU Usage:
+cat /local/scratch/nvidia-smi-output
+
+
+Check my Active Jobs:
+squeue -u clo37 -o "%.18A %.8T %.10M %.10L %.5C %.40j %.10l %.R"

@@ -1,5 +1,6 @@
 import os
 import json
+import torch
 
 def save_to_json(dict_obj, filename, cfg):
     output_dir = cfg.path.output_dir
@@ -7,6 +8,13 @@ def save_to_json(dict_obj, filename, cfg):
     save_path = os.path.join(output_dir, f"{filename}.json")
     with open(save_path, "w") as f:
         json.dump(dict_obj, f, indent=4)
+    print(f"Saved {filename} to {save_path}")
+    
+def save_to_pt(tensor, filename, cfg):
+    output_dir = cfg.path.output_dir
+    os.makedirs(output_dir, exist_ok=True)
+    save_path = os.path.join(output_dir, f"{filename}.pt")
+    torch.save(tensor, save_path)
     print(f"Saved {filename} to {save_path}")
 
 

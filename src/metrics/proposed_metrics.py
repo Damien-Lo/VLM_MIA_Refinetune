@@ -94,7 +94,7 @@ def cross_entropy_mink(per_token_ce, cfg):
             result_key = f"Min_{_key*100}% Cross_Entro_Augs"
             if result_key not in result: 
                 result[result_key] = list()
-            result[result_key].append(-1*np.mean(_loss_diff[_key]))
+            result[result_key].append(-1*np.mean(_loss_diff[_key]).item())
 
     return result
 
@@ -131,11 +131,11 @@ def cross_entropy_diff_mink(per_token_ce, cfg):
             result_key = f"Min_{_key*100}% Cross_Entro_Augs"
             if result_key not in result: 
                 result[result_key] = list()
-            result[result_key].append(np.mean(_loss_diff[_key])) # members has smaller score (later will be flipped.)
+            result[result_key].append(np.mean(_loss_diff[_key]).item()) # members has smaller score (later will be flipped.)
 
     return result
 
-def renyi_kl_div_mink(renyi_probs, sampled_indices, cfg, eps=1e-12):
+def renyi_kl_div_mink(renyi_probs, cfg, eps=1e-12):
     print("KL-Div Metric")
     result = dict()
     meta = dict()
@@ -216,7 +216,7 @@ def renyi_kl_div_mink(renyi_probs, sampled_indices, cfg, eps=1e-12):
             if setting_accumilator == 'none': 
                 continue
             
-            key = f'final_agg_maxed_aug_{setting_accumilator}ed_settings'
+            key = f'aggregated_maxed_aug_{setting_accumilator}ed_settings'
             if key not in final_combinations:
                 final_combinations[key] = list()
             for sample_idx in range(number_of_samples):
@@ -233,7 +233,7 @@ def renyi_kl_div_mink(renyi_probs, sampled_indices, cfg, eps=1e-12):
             if setting_accumilator == 'none': 
                 continue
             
-            key = f'avged_aug_{setting_accumilator}ed_settings'
+            key = f'aggregated_avged_aug_{setting_accumilator}ed_settings'
             if key not in final_combinations:
                 final_combinations[key] = list()
             for sample_idx in range(number_of_samples):
@@ -267,7 +267,7 @@ def kl_div_per_token(org_probs, org_log_probs, aug_log_probs):
 
 
 
-def renyi_divergence_mink(probs,sampled_indices, cfg):
+def renyi_divergence_mink(probs, cfg):
     print("Renyi-Div Metric")
     alpha = cfg.alpha
     result = dict()
@@ -348,7 +348,7 @@ def renyi_divergence_mink(probs,sampled_indices, cfg):
             if setting_accumilator == 'none': 
                 continue
             
-            key = f'final_agg_maxed_aug_{setting_accumilator}ed_settings'
+            key = f'aggregated_maxed_aug_{setting_accumilator}ed_settings'
             if key not in final_combinations:
                 final_combinations[key] = list()
             for sample_idx in range(number_of_samples):
@@ -365,7 +365,7 @@ def renyi_divergence_mink(probs,sampled_indices, cfg):
             if setting_accumilator == 'none': 
                 continue
             
-            key = f'avged_aug_{setting_accumilator}ed_settings'
+            key = f'aggregated_avged_aug_{setting_accumilator}ed_settings'
             if key not in final_combinations:
                 final_combinations[key] = list()
             for sample_idx in range(number_of_samples):

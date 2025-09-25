@@ -23,7 +23,7 @@ def aug_kl(probabilities, log_probabilities, cfg):
                                       _orig_log_prob,
                                       probabilities[aug_name][0][_sample_idx]))
                                      # change [0] to something else or add a new logic if we use multiple params for each augmentation.
-        result.append(-statistics.mean(_kld))
+        result.append(-statistics.mean(_kld).item())
     return result
 
 

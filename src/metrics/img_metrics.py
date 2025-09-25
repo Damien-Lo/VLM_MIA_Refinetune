@@ -3,7 +3,7 @@ import numpy as np
 from src.metrics.baseline_metrics import aug_kl, min_k, mod_entropy, mod_renyi, max_prob_gap, max_entropy, min_entropy
 from src.metrics.proposed_metrics import cross_entropy_mink, cross_entropy_diff_mink, renyi_kl_div_mink, renyi_divergence_mink
 
-def get_img_metric_by_parts(meta_metrics, sampled_indices, cfg):
+def get_img_metric_by_parts(meta_metrics, cfg):
     """
     meta_metrics: batched or full meta_metrics dictionary
     meta_metrics : {
@@ -94,31 +94,31 @@ def get_img_metric_by_parts(meta_metrics, sampled_indices, cfg):
         pred["cross_entropy_diff_min_k"] = _cross_entropy_diff_min_k
         
     if "min_k_renyi_05_kl_div" in cfg.img_metrics.metrics_to_use:
-        pred["min_k_renyi_05_kl_div"], meta["min_k_renyi_05_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_05_probs'], sampled_indices, cfg.img_metrics.min_k_renyi_05_kl_div)
+        pred["min_k_renyi_05_kl_div"], meta["min_k_renyi_05_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_05_probs'], cfg.img_metrics.min_k_renyi_05_kl_div)
         
     if "min_k_renyi_1_kl_div" in cfg.img_metrics.metrics_to_use:
-        pred["min_k_renyi_1_kl_div"],  meta["min_k_renyi_1_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_1_probs'],sampled_indices, cfg.img_metrics.min_k_renyi_1_kl_div)
+        pred["min_k_renyi_1_kl_div"],  meta["min_k_renyi_1_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_1_probs'], cfg.img_metrics.min_k_renyi_1_kl_div)
         
     if "min_k_renyi_2_kl_div" in cfg.img_metrics.metrics_to_use:
-        pred["min_k_renyi_2_kl_div"],  meta["min_k_renyi_2_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_2_probs'],sampled_indices, cfg.img_metrics.min_k_renyi_2_kl_div)
+        pred["min_k_renyi_2_kl_div"],  meta["min_k_renyi_2_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_2_probs'], cfg.img_metrics.min_k_renyi_2_kl_div)
         
     if "min_k_renyi_inf_kl_div" in cfg.img_metrics.metrics_to_use:
-        pred["min_k_renyi_inf_kl_div"],  meta["min_k_renyi_inf_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_inf_probs'], sampled_indices, cfg.img_metrics.min_k_renyi_inf_kl_div)
+        pred["min_k_renyi_inf_kl_div"],  meta["min_k_renyi_inf_kl_div_tkn_vals"] = renyi_kl_div_mink(meta_metrics['renyi_inf_probs'], cfg.img_metrics.min_k_renyi_inf_kl_div)
         
     if "min_k_renyi_divergence_025" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_divergence_025 = renyi_divergence_mink(meta_metrics['probabilities'], sampled_indices, cfg.img_metrics.min_k_renyi_divergence_025)
+        _min_k_renyi_divergence_025 = renyi_divergence_mink(meta_metrics['probabilities'], cfg.img_metrics.min_k_renyi_divergence_025)
         pred["min_k_renyi_divergence_025"], meta["min_k_renyi_divergence_025_tkn_vals"] = _min_k_renyi_divergence_025
         
     if "min_k_renyi_divergence_05" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_divergence_05 = renyi_divergence_mink(meta_metrics['probabilities'], sampled_indices, cfg.img_metrics.min_k_renyi_divergence_05)
+        _min_k_renyi_divergence_05 = renyi_divergence_mink(meta_metrics['probabilities'], cfg.img_metrics.min_k_renyi_divergence_05)
         pred["min_k_renyi_divergence_05"], meta["min_k_renyi_divergence_05_tkn_vals"] = _min_k_renyi_divergence_05
          
     if "min_k_renyi_divergence_2" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_divergence_2 = renyi_divergence_mink(meta_metrics['probabilities'], sampled_indices, cfg.img_metrics.min_k_renyi_divergence_2)
+        _min_k_renyi_divergence_2 = renyi_divergence_mink(meta_metrics['probabilities'], cfg.img_metrics.min_k_renyi_divergence_2)
         pred["min_k_renyi_divergence_2"], meta["min_k_renyi_divergence_2_tkn_vals"] = _min_k_renyi_divergence_2
     
     if "min_k_renyi_divergence_4" in cfg.img_metrics.metrics_to_use:
-        _min_k_renyi_divergence_4 = renyi_divergence_mink(meta_metrics['probabilities'], sampled_indices, cfg.img_metrics.min_k_renyi_divergence_4)
+        _min_k_renyi_divergence_4 = renyi_divergence_mink(meta_metrics['probabilities'], cfg.img_metrics.min_k_renyi_divergence_4)
         pred["min_k_renyi_divergence_4"], meta["min_k_renyi_divergence_4_tkn_vals"] = _min_k_renyi_divergence_4
         
     

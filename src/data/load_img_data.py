@@ -6,6 +6,8 @@ from io import BytesIO
 from datasets import Dataset
 from datasets import load_dataset
 from src.data.augmentations import get_augmentations
+from torchvision import transforms
+import numpy as np
 
 from llava.mm_utils import (
     process_images,
@@ -105,6 +107,28 @@ def get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, mode
                           cache_dir=cfg.path.cache_dir)
     _dataset = _dataset.add_column("indices", list(range(len(_dataset))))
     _dataset = _dataset.add_column("desc", descriptions)
+    
+    
+    
+    # Getting The Indecies of Only the Images Selected
+    class_labels = _dataset["label"]
+    image_sampled_indicies = []
+    
+    if cfg.img_metrics.get_raw_images > 0:
+        image_sampled_indicies = np.sort(np.concatenate([
+        np.where(np.array(class_labels) == 1)[0][:cfg.img_metrics.get_raw_images],
+        np.where(np.array(class_labels) == 0)[0][:cfg.img_metrics.get_raw_images]
+        ]))
+        
+        categorised_image_sampled_indicies = {'members':np.where(np.array(class_labels) == 1)[0][:cfg.img_metrics.get_raw_images].tolist(),
+                    'non_members':np.where(np.array(class_labels) == 0)[0][:cfg.img_metrics.get_raw_images].tolist()}
+        
+        print(f"Raw Image Indecies: {image_sampled_indicies}")
+    
+    
+    
+    
+    
     if cfg.inference.use_augmentation:
         _dataset = _dataset.map(convert_to_augmentation_mod_infer,
                             batched=True,
@@ -115,7 +139,8 @@ def get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, mode
                                 "instruction": text,
                                 "model_config": model_config,
                                 "conv_mode": conv_mode,
-                                "cfg": cfg
+                                "cfg": cfg,
+                                "image_sampled_indicies": image_sampled_indicies
                             })
 
     else:
@@ -130,7 +155,7 @@ def get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, mode
                                 "conv_mode": conv_mode,
                                 "cfg": cfg
                             })
-    return _dataset
+    return _dataset, categorised_image_sampled_indicies
 
 
 def convert_to_generation_input_ids(examples, tokenizer, image_processor, instruction, model_config, conv_mode, cfg):
@@ -226,9 +251,9 @@ def convert_to_aug_generation_input_ids(examples, tokenizer, image_processor, in
         # Get augmented views
         image_sizes = image.size
         aug_imgs = dict()
-        for k, aug_f_list in aug_dict.items():
+        for k, aug_f_list in aug_dict.items():          # For Aug Type, Aug_Setting_List
             _aug_tensor_list = list()
-            for _aug_f in aug_f_list:
+            for _aug_f in aug_f_list:                   # For Setting In Aug_setting_List
                 _aug_image = _aug_f(image)
                 _aug_image_tensor = process_images(
                     [_aug_image],
@@ -323,7 +348,8 @@ def convert_to_mod_infer(examples, tokenizer, image_processor, instruction, mode
     }
 
 
-def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, instruction, model_config, conv_mode, cfg):
+def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, instruction, model_config, conv_mode, cfg, image_sampled_indicies):
+    
     """
     Preprocess the mod_infer dataset
     example: batched rows of dataset (has image paths and the descriptions paired with each image)
@@ -350,7 +376,9 @@ def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, inst
     all_indices = list()
     all_input_ids = list()
     all_orig_image_tensors = list()
+    all_orig_raw_images = list()
     all_aug_images = list()
+    all_aug_raw_images = list()
     all_image_sizes = list()
     all_prompt_0 = list()
     all_prompt_1 = list()
@@ -366,6 +394,7 @@ def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, inst
         prompt = conv.get_prompt()[:-4]
 
         images = load_images([_image_path])
+                
         image_sizes = [x.size for x in images]
         orig_image_tensor = process_images(
             images,
@@ -374,9 +403,11 @@ def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, inst
         )
 
         aug_imgs = dict()
-        for k, aug_f_list in aug_dict.items():
+        aug_raw_imgs = dict() # {aug_key: [aug_img, aug_img]}
+        for k, aug_f_list in aug_dict.items():              # For Aug Type, Aug_Setting_List
             _aug_tensor_list = list()
-            for _aug_f in aug_f_list:
+            _aug_raw_image_list = list()
+            for _aug_f in aug_f_list:                       # For Setting In Aug_setting_List
                 _aug_image = _aug_f(images[0])
                 _aug_image_tensor = process_images(
                     [_aug_image],
@@ -384,8 +415,19 @@ def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, inst
                     model_config
                 )
                 _aug_tensor_list.append(_aug_image_tensor)
+                _aug_raw_image_list.append(np.array(_aug_image))
             aug_imgs[k] = _aug_tensor_list
-        
+            aug_raw_imgs[k] = _aug_raw_image_list
+            
+            
+        if _indices in image_sampled_indicies:
+            all_orig_raw_images.append(np.array(images[0]))
+            all_aug_raw_images.append(aug_raw_imgs)
+            print("Appended Desired Sample")
+        else:
+            all_orig_raw_images.append(None)
+            all_aug_raw_images.append(None)
+            
 
         # Tokenize Image Based On Prompt
         input_ids, prompt_chunks = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
@@ -405,7 +447,9 @@ def convert_to_augmentation_mod_infer(examples, tokenizer, image_processor, inst
     return {
         "input_ids": all_input_ids,
         "orig_image_tensors": all_orig_image_tensors,
+        "orig_raw_images": all_orig_raw_images,
         "aug_image_tensors": all_aug_images,
+        "aug_raw_images": all_aug_raw_images,
         "image_sizes" : all_image_sizes,
         "prompt_0": all_prompt_0,
         "prompt_1": all_prompt_1,
