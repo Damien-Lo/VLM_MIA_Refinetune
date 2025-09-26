@@ -1,2 +1,6 @@
 results/
 LatestResults/
+cache/
+*.cache
+.cache/
+__pycache__/

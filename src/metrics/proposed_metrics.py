@@ -164,14 +164,15 @@ def renyi_kl_div_mink(renyi_probs, cfg, eps=1e-12):
                 org_log = np.log(org + eps)
                 aug_log = np.log(torch.stack(aug_probs).cpu().numpy() + eps)
 
-                kl = kl_div_per_token(org, org_log, aug_log)
+                kl = kl_div_per_token(org, org_log, aug_log) # KL: 1D vector
                 
                 # Append Values to Respective Data Storage
                 all_raw_metric_values[sample_idx].append(kl.tolist())
                 all_samples_in_setting_values.append(kl)
                 
             all_settings_in_aug.append(all_samples_in_setting_values)
-        
+            # all_settings_in_aug [setting, sample, kld(1D)]
+
         # For Aug, Push sampled raw kl_array to meta return
         meta[aug] = all_raw_metric_values
         
