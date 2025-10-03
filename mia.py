@@ -91,7 +91,7 @@ def main(cfg):
     # gen_data = get_generation_data(cfg, tokenizer, image_processor, text, model.config, conv_mode)
     # indices, descriptions = generate(model, tokenizer, gen_data, cfg)
     
-    from gen_text import sentences as descriptions
+    from gen_text import flickr_sentences, dalle_sentences
     
     # If we want to get meta values and labels for some samples (first x members and nonmembers) find the indecies these samples live
     print('''
@@ -102,7 +102,14 @@ def main(cfg):
           \n \n
           '''
           )
-    
+
+    if cfg.data.subset == "img_Flickr":
+        descriptions = flickr_sentences
+    elif cfg.data.subset == "img_dalle":
+        descriptions = dalle_sentences
+    else:
+        raise ValueError(f"Unexpected subset {cfg.data.subset}")
+
     print("Generating Inference and Augmentations.....")
     mod_infer_data, image_sampled_indicies = get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, model.config, conv_mode)
     proc_meta_vaues_sampled_indices = list()

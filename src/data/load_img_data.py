@@ -108,7 +108,8 @@ def get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, mode
     _dataset = _dataset.add_column("indices", list(range(len(_dataset))))
     _dataset = _dataset.add_column("desc", descriptions)
     
-    
+    # Sanity check
+    print(f"Data split {cfg.data.subset} length: {len(_dataset)}")
     
     # Getting The Indecies of Only the Images Selected
     class_labels = _dataset["label"]
@@ -124,6 +125,9 @@ def get_mod_infer_data(cfg, descriptions, tokenizer, image_processor, text, mode
                     'non_members':np.where(np.array(class_labels) == 0)[0][:cfg.img_metrics.get_raw_images].tolist()}
         
         print(f"Raw Image Indecies: {image_sampled_indicies}")
+
+    else:
+        categorised_image_sampled_indicies = None  # Initialize to avoid UnboundLocalError
     
     
     
