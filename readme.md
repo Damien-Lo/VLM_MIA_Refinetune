@@ -1,7 +1,5 @@
-# VLM MIA repo
+# VLM MIA REFINETUNE
 
 ## TODO
-- Add augmentations to the src/data.
-- Rewrite src/model/generate to handle augmented data generation.
-- Rewrite src/model/infer to handle augmented data inference.
+- Remove aug in fine tune data generation
 
